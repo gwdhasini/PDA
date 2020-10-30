@@ -91,7 +91,8 @@ GermanCredit$NEW_CAR <- as.factor(GermanCredit$NEW_CAR)
 GermanCredit$USED_CAR <- as.factor(GermanCredit$USED_CAR)
 GermanCredit$FURNITURE <- as.factor(GermanCredit$FURNITURE)
 GermanCredit$RADIO.TV <- as.factor(GermanCredit$RADIO.TV)
-GermanCredit$EDUCATION <- as.factor(GermanCredit$EDUCATION) #on a un 3e level qui apparait ("-1") alors qu'elle est censée être binaire (0/1). Je pense que des 1 deviennent -1 quand on importe le fichier
+GermanCredit$EDUCATION <- as.factor(GermanCredit$EDUCATION) #on a un 3e level qui apparait ("-1") alors qu'elle est censée être binaire (0/1). Je pense que des 1 deviennent -1 quand on importe le fichier 
+# PIA: c'est un problème du dataset, dans le csv le -1 apparait aussi, donc pas un probleme de upload. on devrait demander au prof si eliminer cette ligne ou si on peut changer manuellement l'observation
 GermanCredit$RETRAINING <- as.factor(GermanCredit$RETRAINING)
 GermanCredit$SAV_ACCT <- as.factor(GermanCredit$SAV_ACCT)
 GermanCredit$EMPLOYMENT <- as.factor(GermanCredit$EMPLOYMENT)
@@ -111,6 +112,17 @@ GermanCredit$TELEPHONE <- as.factor(GermanCredit$TELEPHONE)
 GermanCredit$FOREIGN <- as.factor(GermanCredit$FOREIGN)
 GermanCredit$RESPONSE <- as.factor(GermanCredit$RESPONSE) #This will be the "y" variable (to be predicted)
 #Install_rate est inscrite comme numerical dans le PDF mais elle m'a l'air categorical et pareil pour num_credits --> impact sur les analyses qui suivent 
+
+# PIA 
+## same thing as above but without install rate (i=13)
+for (i in (1:31)) {
+  if (is.integer(GermanCredit[,i]) & i != 2  & i !=10  & i != 13  & i !=22  & i !=26  & i != 28) {
+  GermanCredit[,i] <- as.factor(GermanCredit[,i])
+  }
+}
+
+str(GermanCredit)
+
 ```
 
 ```{r, echo=FALSE}
