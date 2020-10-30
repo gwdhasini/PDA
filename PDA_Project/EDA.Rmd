@@ -121,7 +121,6 @@ for (i in (1:31)) {
   }
 }
 
-str(GermanCredit)
 
 ```
 
@@ -138,7 +137,8 @@ describe(GermanCredit)
 
 ```{r, echo=FALSE}
 library(DT)
-datatable(head(GermanCredit), class = "cell-border stripe") #Ca apparait pas haha
+datatable(head(GermanCredit), class = "cell-border stripe") #Ca apparait pas haha 
+# PIA: à checker quand on va knit
 
 ```
 
@@ -156,7 +156,7 @@ num.var<-inspect_num(GermanCredit)
 show_plot(num.var, col_palette=3)
 
 cat.var<-inspect_cat(GermanCredit) 
-show_plot(cat.var)
+show_plot(cat.var) #PIA: je comprends pas trop comment on peut interpreter ce graph
 
 ```
 
@@ -194,11 +194,25 @@ boxplot(NUM_CREDITS ~ RESPONSE, data = GermanCredit, xlab = "Response", varwidth
 
 ## Correlations
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.width= 8, fig.height= 7}
 library(GGally)
 plot_correlation(GermanCredit, type= 'c', cor_args = list( 'use' = 'complete.obs'))
 #ggpairs(GermanCredit, ggplot2::aes(colour = RESPONSE)) ça prend trop de temps à run
 #Il y a plein plein de plots de correlation différentes, du coup j'en ai seulement mis 2 mais dis moi si y en a un qui te plaît plus
 
+
 ```
+
+## Good vs Bad credits
+```{r, echo=FALSE}
+#from WS 4
+library(explore)
+GermanCredit %>% explore(RESPONSE)
+GermanCredit %>% 
+  select(FOREIGN,TELEPHONE, RESPONSE) %>% 
+  explore_all(target = RESPONSE)
+
+```
+
+
 
