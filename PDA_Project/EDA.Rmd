@@ -9,22 +9,184 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+#Packages to be put in the next section at the end of the project
+```{r setup, echo = FALSE, warning = FALSE, message = FALSE}
+library(tidyverse)
+library(DT)
+library(Hmisc)  
+library(tidyquant)
+library(ggthemes)
+library(RColorBrewer)
+library(corrplot)
+library(psych)
+library(GGally)
+library(corrr)
+library(corrplot)
+library(ggcorrplot)
+library(kableExtra)
+library(DataExplorer)
+library(inspectdf)
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
+```{r setup2, echo = FALSE, warning = FALSE, message = FALSE}
+knitr::opts_chunk$set(
+  comment = "#>",
+  collapse = TRUE,
+  cache = TRUE,
+  fig.retina = 0.8, # figures are either vectors or 300 dpi diagrams
+  dpi = 300,
+  out.width = "70%",
+  fig.align = 'center',
+  fig.width = 6,
+  fig.asp = 0.618,  
+  fig.show = "hold"
+)
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+ggplot2::theme_set(ggplot2::theme_light())
+
+options(
+  digits = 3,
+  str = strOptions(strict.width = "cut"),
+  width = 69,
+  tibble.width = 69,
+  cli.unicode = FALSE
+)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+# Introduction
+
+```{r, echo=FALSE}
+GermanCredit <- read.csv(
+  here::here("data/GermanCredit.csv"),
+  header = TRUE,
+  sep = ";",
+  dec = "."
+)
+
+GermanCredit <- GermanCredit[,-1]
+```
+--> Petit problèmes: les observations sont devenues une colonne, donc je l'ai enlevé mannuellement.. Je suis sûre que y une meilleure façon de faire haha.
+
+# Exploratory Data Analysis
+
+## Structure & Summary
+
+```{r, echo=FALSE}
+str(GermanCredit)
+```
+
+
+```{r, echo=FALSE}
+head(GermanCredit)
+```
+
+Transformation of integer variables into correct categorical ones:
+
+```{r, echo=FALSE}
+GermanCredit$CHK_ACCT <- as.factor(GermanCredit$CHK_ACCT)
+GermanCredit$HISTORY <- as.factor(GermanCredit$HISTORY)
+GermanCredit$NEW_CAR <- as.factor(GermanCredit$NEW_CAR)
+GermanCredit$USED_CAR <- as.factor(GermanCredit$USED_CAR)
+GermanCredit$FURNITURE <- as.factor(GermanCredit$FURNITURE)
+GermanCredit$RADIO.TV <- as.factor(GermanCredit$RADIO.TV)
+GermanCredit$EDUCATION <- as.factor(GermanCredit$EDUCATION) #on a un 3e level qui apparait ("-1") alors qu'elle est censée être binaire (0/1). Je pense que des 1 deviennent -1 quand on importe le fichier
+GermanCredit$RETRAINING <- as.factor(GermanCredit$RETRAINING)
+GermanCredit$SAV_ACCT <- as.factor(GermanCredit$SAV_ACCT)
+GermanCredit$EMPLOYMENT <- as.factor(GermanCredit$EMPLOYMENT)
+GermanCredit$MALE_DIV <- as.factor(GermanCredit$MALE_DIV)
+GermanCredit$MALE_SINGLE <- as.factor(GermanCredit$MALE_SINGLE)
+GermanCredit$MALE_MAR_or_WID <- as.factor(GermanCredit$MALE_MAR_or_WID)
+GermanCredit$CO.APPLICANT <- as.factor(GermanCredit$CO.APPLICANT)
+GermanCredit$GUARANTOR <- as.factor(GermanCredit$GUARANTOR)
+GermanCredit$PRESENT_RESIDENT <- as.factor(GermanCredit$PRESENT_RESIDENT)
+GermanCredit$REAL_ESTATE <- as.factor(GermanCredit$REAL_ESTATE)
+GermanCredit$PROP_UNKN_NONE <- as.factor(GermanCredit$PROP_UNKN_NONE)
+GermanCredit$OTHER_INSTALL <- as.factor(GermanCredit$OTHER_INSTALL)
+GermanCredit$RENT <- as.factor(GermanCredit$RENT)
+GermanCredit$OWN_RES <- as.factor(GermanCredit$OWN_RES)
+GermanCredit$JOB <- as.factor(GermanCredit$JOB)
+GermanCredit$TELEPHONE <- as.factor(GermanCredit$TELEPHONE)
+GermanCredit$FOREIGN <- as.factor(GermanCredit$FOREIGN)
+GermanCredit$RESPONSE <- as.factor(GermanCredit$RESPONSE) #This will be the "y" variable (to be predicted)
+#Install_rate est inscrite comme numerical dans le PDF mais elle m'a l'air categorical et pareil pour num_credits --> impact sur les analyses qui suivent 
+```
+
+```{r, echo=FALSE}
+str(GermanCredit) #la structure après les modifs. Je t'ai noté les trucs bizarres que j'ai vu mais n'hésites pas à re-checker au cas où
+```
+
+```{r, echo=FALSE}
+library(psych)
+library(Hmisc)
+summary(GermanCredit)
+describe(GermanCredit)
+```
+
+```{r, echo=FALSE}
+library(DT)
+datatable(head(GermanCredit), class = "cell-border stripe") #Ca apparait pas haha
+
+```
+
+```{r, echo=FALSE}
+library(DataExplorer)
+plot_intro(GermanCredit)
+```
+
+```{r, echo=FALSE}
+library(inspectdf)
+types<-inspect_types(GermanCredit)
+show_plot(types, col_palette=2)
+
+num.var<-inspect_num(GermanCredit)
+show_plot(num.var, col_palette=3)
+
+cat.var<-inspect_cat(GermanCredit) 
+show_plot(cat.var)
+
+```
+
+## Histogram & Density
+
+```{r, echo=FALSE}
+library(ggplot2)
+plot_histogram(GermanCredit[,-31])
+plot_density(GermanCredit[,-31],
+             ggtheme = theme_bw())
+```
+
+## Side-by-side boxplots
+
+```{r, echo=FALSE}
+plot_boxplot(GermanCredit,
+             by = 'RESPONSE',
+             ncol = 2,
+             title = "Side-by-side boxplots")
+```
+
+```{r, echo=FALSE}
+lblue <- "#6699CC"
+par(mfrow = c(2, 3))
+
+boxplot(AGE ~ RESPONSE, data = GermanCredit, xlab = "Response", notch = T, 
+    varwidth = T, col = lblue)
+boxplot(AMOUNT ~ RESPONSE, data = GermanCredit, xlab = "Response", varwidth = T, col = lblue)
+boxplot(DURATION ~ RESPONSE, data = GermanCredit, xlab = "Response", varwidth = T, col = lblue)
+boxplot(INSTALL_RATE ~ RESPONSE, data = GermanCredit, xlab = "Response", varwidth = T, col = lblue)
+boxplot(NUM_CREDITS ~ RESPONSE, data = GermanCredit, xlab = "Response", varwidth = T, col = lblue)
+
+
+```
+
+## Correlations
+
+```{r, echo=FALSE}
+library(GGally)
+plot_correlation(GermanCredit, type= 'c', cor_args = list( 'use' = 'complete.obs'))
+#ggpairs(GermanCredit, ggplot2::aes(colour = RESPONSE)) ça prend trop de temps à run
+#Il y a plein plein de plots de correlation différentes, du coup j'en ai seulement mis 2 mais dis moi si y en a un qui te plaît plus
+
+```
+
