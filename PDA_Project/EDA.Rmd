@@ -115,12 +115,21 @@ GermanCredit$RESPONSE <- as.factor(GermanCredit$RESPONSE) #This will be the "y" 
 
 # PIA 
 ## same thing as above but without install rate (i=13)
+## NUM_DEPENDENT a juste 2 valeurs, 1 ou 2. est ce qu'on la considère aussi comme categorical variable?
+
 for (i in (1:31)) {
-  if (is.integer(GermanCredit[,i]) & i != 2  & i !=10  & i != 13  & i !=22  & i !=26  & i != 28) {
+  if (is.integer(GermanCredit[,i]) & i != 2 & i != 8  & i !=10  & i != 13  & i !=22  & i !=26  & i != 28) {
   GermanCredit[,i] <- as.factor(GermanCredit[,i])
   }
 }
 
+# changing education
+for (i in 1:1000){
+  if (GermanCredit[i,8] == "-1") {
+    GermanCredit[i,8] <- "1"
+    GermanCredit[,8] <- as.factor(GermanCredit[,8])
+  }
+}
 
 ```
 
@@ -176,6 +185,13 @@ plot_boxplot(GermanCredit,
              by = 'RESPONSE',
              ncol = 2,
              title = "Side-by-side boxplots")
+
+## PIA
+# age has an outlier. one person is 125 years old!
+GermanCredit %>% 
+  select (AGE, RESPONSE) %>% 
+  arrange(desc(AGE))
+
 ```
 
 ```{r, echo=FALSE}
@@ -208,11 +224,33 @@ plot_correlation(GermanCredit, type= 'c', cor_args = list( 'use' = 'complete.obs
 #from WS 4
 library(explore)
 GermanCredit %>% explore(RESPONSE)
+
+for (i in (1:30)) {
+  if (is.factor(GermanCredit[,i])) {
+    
+    GermanCredit %>% 
+    select(TELEPHONE,RESPONSE) %>% 
+    explore_all(target= RESPONSE)
+  }
+} 
+
+## PIA ca marche juste quand on select 3 variables, whyyyyyyy?
 GermanCredit %>% 
-  select(FOREIGN,TELEPHONE, RESPONSE) %>% 
+  select(TELEPHONE, RADIO.TV, RESPONSE) %>% 
   explore_all(target = RESPONSE)
 
 ```
+
+
+
+
+
+
+
+
+
+
+
 
 
 
