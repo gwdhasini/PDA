@@ -63,11 +63,10 @@ GermanCredit <- read.csv(
   header = TRUE,
   sep = ";",
   dec = "."
-)
+)[,-1]
 
-GermanCredit <- GermanCredit[,-1]
 ```
---> Petit problèmes: les observations sont devenues une colonne, donc je l'ai enlevé mannuellement.. Je suis sûre que y une meilleure façon de faire haha.
+
 
 # Exploratory Data Analysis
 
@@ -85,37 +84,6 @@ head(GermanCredit)
 Transformation of integer variables into correct categorical ones:
 
 ```{r, echo=FALSE}
-GermanCredit$CHK_ACCT <- as.factor(GermanCredit$CHK_ACCT)
-GermanCredit$HISTORY <- as.factor(GermanCredit$HISTORY)
-GermanCredit$NEW_CAR <- as.factor(GermanCredit$NEW_CAR)
-GermanCredit$USED_CAR <- as.factor(GermanCredit$USED_CAR)
-GermanCredit$FURNITURE <- as.factor(GermanCredit$FURNITURE)
-GermanCredit$RADIO.TV <- as.factor(GermanCredit$RADIO.TV)
-GermanCredit$EDUCATION <- as.factor(GermanCredit$EDUCATION) #on a un 3e level qui apparait ("-1") alors qu'elle est censée être binaire (0/1). Je pense que des 1 deviennent -1 quand on importe le fichier 
-# PIA: c'est un problème du dataset, dans le csv le -1 apparait aussi, donc pas un probleme de upload. on devrait demander au prof si eliminer cette ligne ou si on peut changer manuellement l'observation
-GermanCredit$RETRAINING <- as.factor(GermanCredit$RETRAINING)
-GermanCredit$SAV_ACCT <- as.factor(GermanCredit$SAV_ACCT)
-GermanCredit$EMPLOYMENT <- as.factor(GermanCredit$EMPLOYMENT)
-GermanCredit$MALE_DIV <- as.factor(GermanCredit$MALE_DIV)
-GermanCredit$MALE_SINGLE <- as.factor(GermanCredit$MALE_SINGLE)
-GermanCredit$MALE_MAR_or_WID <- as.factor(GermanCredit$MALE_MAR_or_WID)
-GermanCredit$CO.APPLICANT <- as.factor(GermanCredit$CO.APPLICANT)
-GermanCredit$GUARANTOR <- as.factor(GermanCredit$GUARANTOR)
-GermanCredit$PRESENT_RESIDENT <- as.factor(GermanCredit$PRESENT_RESIDENT)
-GermanCredit$REAL_ESTATE <- as.factor(GermanCredit$REAL_ESTATE)
-GermanCredit$PROP_UNKN_NONE <- as.factor(GermanCredit$PROP_UNKN_NONE)
-GermanCredit$OTHER_INSTALL <- as.factor(GermanCredit$OTHER_INSTALL)
-GermanCredit$RENT <- as.factor(GermanCredit$RENT)
-GermanCredit$OWN_RES <- as.factor(GermanCredit$OWN_RES)
-GermanCredit$JOB <- as.factor(GermanCredit$JOB)
-GermanCredit$TELEPHONE <- as.factor(GermanCredit$TELEPHONE)
-GermanCredit$FOREIGN <- as.factor(GermanCredit$FOREIGN)
-GermanCredit$RESPONSE <- as.factor(GermanCredit$RESPONSE) #This will be the "y" variable (to be predicted)
-#Install_rate est inscrite comme numerical dans le PDF mais elle m'a l'air categorical et pareil pour num_credits --> impact sur les analyses qui suivent 
-
-# PIA 
-## same thing as above but without install rate (i=13)
-## NUM_DEPENDENT a juste 2 valeurs, 1 ou 2. est ce qu'on la considère aussi comme categorical variable?
 
 for (i in (1:31)) {
   if (is.integer(GermanCredit[,i]) & i != 2 & i != 8  & i !=10  & i != 13  & i !=22  & i !=26  & i != 28) {
@@ -130,6 +98,7 @@ for (i in 1:1000){
     GermanCredit[,8] <- as.factor(GermanCredit[,8])
   }
 }
+
 
 ```
 
@@ -165,7 +134,7 @@ num.var<-inspect_num(GermanCredit)
 show_plot(num.var, col_palette=3)
 
 cat.var<-inspect_cat(GermanCredit) 
-show_plot(cat.var) #PIA: je comprends pas trop comment on peut interpreter ce graph
+show_plot(cat.var) 
 
 ```
 
@@ -191,6 +160,7 @@ plot_boxplot(GermanCredit,
 GermanCredit %>% 
   select (AGE, RESPONSE) %>% 
   arrange(desc(AGE))
+#--> enlever observation 125 ans
 
 ```
 
@@ -225,18 +195,26 @@ plot_correlation(GermanCredit, type= 'c', cor_args = list( 'use' = 'complete.obs
 library(explore)
 GermanCredit %>% explore(RESPONSE)
 
-for (i in (1:30)) {
-  if (is.factor(GermanCredit[,i])) {
-    
-    GermanCredit %>% 
-    select(TELEPHONE,RESPONSE) %>% 
-    explore_all(target= RESPONSE)
-  }
-} 
 
-## PIA ca marche juste quand on select 3 variables, whyyyyyyy?
+#CHECK QUE TOUTES LES VARIABLES ON ETE CONSIDERE
 GermanCredit %>% 
   select(TELEPHONE, RADIO.TV, RESPONSE) %>% 
+  explore_all(target = RESPONSE)
+
+GermanCredit %>% 
+  select(NEW_CAR, USED_CAR,FURNITURE,EDUCATION, RESPONSE) %>% 
+  explore_all(target = RESPONSE)
+
+GermanCredit %>% 
+  select(FOREIGN, MALE_DIV, MALE_SINGLE, MALE_MAR_or_WID, RESPONSE) %>% 
+  explore_all(target = RESPONSE)
+
+GermanCredit %>% 
+  select(GUARANTOR, CO.APPLICANT, PROP_UNKN_NONE, OTHER_INSTALL, RESPONSE) %>% 
+  explore_all(target = RESPONSE)
+
+GermanCredit %>% 
+  select(REAL_ESTATE, RENT, OWN_RES, RETRAINING, RESPONSE) %>% 
   explore_all(target = RESPONSE)
 
 ```
