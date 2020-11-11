@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ##Il faut qu'on balance nos data avant sinon ça va faire des erreurs plus tard
 ##Mais après le data set risque d'être petit?
     #library(plyr) --> count(GermanCredit, "RESPONSE")
-#test
+
 row.order <- sample(c(1:1000)) # first randomize the order of the rows
 german.tr <- GermanCredit[row.order[1:750],] # take the first 750 (random) rows of german for the training set
 german.te <- GermanCredit[row.order[751:1000],]
