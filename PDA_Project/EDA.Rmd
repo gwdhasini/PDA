@@ -72,33 +72,37 @@ GermanCredit <- read.csv(
 
 ## Structure & Summary
 
+We are going to start our exploratory data analysis by understanding the data. First, let us observe the type of variables of the dataset:
+
 ```{r, echo=FALSE}
 str(GermanCredit)
 ```
 
+We note that all the variables are integer. However, from the data description, a lot of those are actually categorical variables. Hence, in order to have consistent results in our analysis, we are going to transform these variables from integer to factors.
+QUESTION: should we keep the head?
 
 ```{r, echo=FALSE}
 head(GermanCredit)
 ```
 
-Transformation of integer variables into correct categorical ones:
+Transformation of integer variables into correct categorical ones, we use a for loop. 
+While analysing the data, we noted that the variable "EDUCATION" has one outlier: indeed, in one observation it is equal to "-1" instead of 0/1. For this reason, we change the value of this observation before transforming the variables into categorical ones.
 
 ```{r, echo=FALSE}
-
-for (i in (1:31)) {
-  if (is.integer(GermanCredit[,i]) & i != 2 & i != 8  & i !=10  & i != 13  & i !=22  & i !=26  & i != 28) {
-  GermanCredit[,i] <- as.factor(GermanCredit[,i])
-  }
-}
 
 # changing education
 for (i in 1:1000){
   if (GermanCredit[i,8] == "-1") {
-    GermanCredit[i,8] <- "1"
+    GermanCredit[i,8] <- 1
     GermanCredit[,8] <- as.factor(GermanCredit[,8])
   }
 }
 
+for (i in (1:31)) {
+  if (is.integer(GermanCredit[,i]) & i != 2 & i !=10  & i != 13  & i !=22  & i !=26  & i != 28) {
+  GermanCredit[,i] <- as.factor(GermanCredit[,i])
+  }
+}
 
 ```
 
@@ -106,37 +110,72 @@ for (i in 1:1000){
 str(GermanCredit) #la structure après les modifs. Je t'ai noté les trucs bizarres que j'ai vu mais n'hésites pas à re-checker au cas où
 ```
 
+Now that the variables are in the correct form, we can move one with our analysis.
+
+We start by looking at the structure of the dataset.
+
+```{r, echo=FALSE}
+library(DataExplorer)
+plot_intro(GermanCredit)
+
+types<-inspect_types(GermanCredit)
+show_plot(types, col_palette=2)
+```
+
+From the first plot, we note that there are no missing observations. Moreover, after the variables transformation 81% of them have discrete values, meaning that these are categorical variables. That is confirmed by the second plot that gives us the exact number of columns which are integer and the ones that are factors (categorical variables).
+
+We are now going to dive deeper into the variables' analysis. 
+
 ```{r, echo=FALSE}
 library(psych)
 library(Hmisc)
 summary(GermanCredit)
-describe(GermanCredit)
+describe(GermanCredit) # QUESTION: shoul we keep this? I'm not sure it gives us a lot of useful info
+```
+
+The summary gives us a first overview of the variables' details. Interestingly, some categorical variables present an unequal distribution of values. For instance, we note that the variable "CO.APPLICANT" is 0 959 times and 1 only 41 times. A similar comment can be made for other categorical variables like "MALE_MAR_or_WID", "FOREIGN", "MALE_DIV", "EDUCATION". This finding is particularly interesting as it raises the following question: is the value of a categorical variable discriminatory for the outcome of the response variable? For instance, if we have an observation where "CO.APPLICANT" = 1, what is the value of "RESPONSE"? QUESTION: Est ce qu'on met ca ou ce n est pas clair?
+
+Let us now analyse the non-categorical variables. For those, we can look at the min and the max, which gives us a range. For instance, we see that in this bank the duration of the loan goes from 4 to 72 months. Moreover, we see that the Max variable "AGE" is 125. This is an inconsistency in the dataset. First, we are going to see if such observation is just one outlier or if there are many of them, and then, we are going to remove them. This will allows us to have robust results.
+
+
+```{r, echo=FALSE}
+
+GermanCredit %>% 
+  select (AGE) %>% 
+  group_by(AGE) %>% 
+  count() %>% 
+  arrange(desc(AGE)) %>% kable()
+```
+
+Only one observation has AGE = 125, so we remove it from the dataset.
+
+```{r, echo=FALSE}
+GermanCredit <- GermanCredit %>% 
+  filter(AGE != "125")
 ```
 
 ```{r, echo=FALSE}
 library(DT)
 datatable(head(GermanCredit), class = "cell-border stripe") #Ca apparait pas haha 
 # PIA: à checker quand on va knit
-
-```
-
-```{r, echo=FALSE}
-library(DataExplorer)
-plot_intro(GermanCredit)
+#QUESTION: finalement ca aussi c'est le head donc on peut le mettre à la place de celui au debut pour ne pas se repeter
 ```
 
 ```{r, echo=FALSE}
 library(inspectdf)
-types<-inspect_types(GermanCredit)
-show_plot(types, col_palette=2)
+# types<-inspect_types(GermanCredit)
+# show_plot(types, col_palette=2)
 
-num.var<-inspect_num(GermanCredit)
-show_plot(num.var, col_palette=3)
+# num.var<-inspect_num(GermanCredit)
+# show_plot(num.var, col_palette=3)
+#QUESTION: we have the same histogram below, I think we should remove this one so we don't repeat ourselves
 
 cat.var<-inspect_cat(GermanCredit) 
 show_plot(cat.var) 
 
 ```
+
+This plot allows us to have a better visualization of how the factor variables are distributed. We confim that for most of them, the amount of times their values is 0 is not equal to when they have a value of 1. The only variable that seems to have a similar distribution of 1 and 0 is MALE_SINGLE. 
 
 ## Histogram & Density
 
@@ -155,12 +194,6 @@ plot_boxplot(GermanCredit,
              ncol = 2,
              title = "Side-by-side boxplots")
 
-## PIA
-# age has an outlier. one person is 125 years old!
-GermanCredit %>% 
-  select (AGE, RESPONSE) %>% 
-  arrange(desc(AGE))
-#--> enlever observation 125 ans
 
 ```
 
