@@ -109,6 +109,8 @@ for (i in (1:31)) {
 
 ```{r, echo=FALSE}
 str(GermanCredit) #la structure après les modifs. Je t'ai noté les trucs bizarres que j'ai vu mais n'hésites pas à re-checker au cas où
+
+## todo: mettre head ici + guarantor enlever 2
 ```
 
 Now that the variables are in the correct form, we can move one with our analysis.
@@ -131,13 +133,13 @@ We are now going to dive deeper into the variables' analysis.
 library(psych)
 library(Hmisc)
 summary(GermanCredit)
-describe(GermanCredit) # QUESTION: shoul we keep this? I'm not sure it gives us a lot of useful info
 ```
 
 The summary gives us a first overview of the variables' details. Interestingly, some categorical variables present an unequal distribution of values. For instance, we note that the variable "CO.APPLICANT" is 0 959 times and 1 only 41 times. A similar comment can be made for other categorical variables like "MALE_MAR_or_WID", "FOREIGN", "MALE_DIV", "EDUCATION". This finding is particularly interesting as it raises the following question: is the value of a categorical variable discriminatory for the outcome of the response variable? For instance, if we have an observation where "CO.APPLICANT" = 1, what is the value of "RESPONSE"? QUESTION: Est ce qu'on met ca ou ce n est pas clair?
 
 Let us now analyse the non-categorical variables. For those, we can look at the min and the max, which gives us a range. For instance, we see that in this bank the duration of the loan goes from 4 to 72 months. Moreover, we see that the Max variable "AGE" is 125. This is an inconsistency in the dataset. First, we are going to see if such observation is just one outlier or if there are many of them, and then, we are going to remove them. This will allows us to have robust results.
 
+todo --> grand range plus de chance outliers
 
 ```{r, echo=FALSE}
 
@@ -159,17 +161,11 @@ GermanCredit <- GermanCredit %>%
 library(DT)
 datatable(head(GermanCredit), class = "cell-border stripe") #Ca apparait pas haha 
 # PIA: à checker quand on va knit
-#QUESTION: finalement ca aussi c'est le head donc on peut le mettre à la place de celui au debut pour ne pas se repeter
+# todo: mettre au debut
 ```
 
 ```{r, echo=FALSE}
 library(inspectdf)
-# types<-inspect_types(GermanCredit)
-# show_plot(types, col_palette=2)
-
-# num.var<-inspect_num(GermanCredit)
-# show_plot(num.var, col_palette=3)
-#QUESTION: we have the same histogram below, I think we should remove this one so we don't repeat ourselves
 
 cat.var<-inspect_cat(GermanCredit) 
 show_plot(cat.var) 
@@ -186,8 +182,6 @@ library(ggplot2)
 num.var<-inspect_num(GermanCredit)
 show_plot(num.var, col_palette=3)
 
-#old
-plot_histogram(GermanCredit[,-31])
 plot_density(GermanCredit[,-31],
              ggtheme = theme_bw())
 
@@ -198,6 +192,9 @@ plot_density(GermanCredit[,-31],
 
 #QUESTION: there is one duration of 72 years.. outlier?
 ```
+--> age, amount and duration skewed on the right --> big difference between mean and median, to be checked
+--> enlever density plot pour install_rate et num_credits (ce ne sont pas des valeurs continues)
+
 
 We are going to comment the histogram for each variable. 
 First, let us look at AGE. Most of the people taking the credit are between their 20s and 40s. However, the age range is quite large and it is not uncommon to see people over 60 getting a credit in this dataset. 
@@ -224,7 +221,6 @@ Moreover, we couls sat that for credits between 25 and 40 years, we expect RESPO
 
 
 ```{r, echo=FALSE}
-#QUESTION: same as above, which one do we keep?
 
 lblue <- "#6699CC"
 par(mfrow = c(2, 3))
