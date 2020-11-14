@@ -15,9 +15,13 @@ knitr::opts_chunk$set(echo = TRUE)
 ##Mais après le data set risque d'être petit?
     #library(plyr) --> count(GermanCredit, "RESPONSE")
 
-# GermanCredit %>% 
-#     group_by(RESPONSE) %>% 
-#     count()
+GermanCredit %>%
+    group_by(RESPONSE) %>%
+    count()
+#--> balance the data: 
+# caret: we can specify that we have unbalanced data: down option. It's not necessary to balance directly, we can balance when we use caret.
+
+#ici scale the data: uniquement pour variables continuous
 
 row.order <- sample(c(1:1000)) # first randomize the order of the rows
 german.tr <- GermanCredit[row.order[1:750],] # take the first 750 (random) rows of german for the training set
@@ -54,7 +58,8 @@ plotcp(credit.ct)
 
 #Lowest xerror = 0.83333
 #1-SE Rule = 0.91781 + 0.055387 = 0.973197 corresponding to cp = 0.0060883  (38 splits) but for visibility purpose let's take the second best --> cp = 0.0159817 (8 splits)
-# Il avait dit que size = splits + 1 ---> ce n'est pas le cas ici
+# Il avait dit que size = splits + 1 ---> ce n'est pas le cas ici . random forrest is better.
+# cp is too small, 0.01
 ```
 
 ## Tree Number 
@@ -138,6 +143,9 @@ confusionMatrix(credit.pred.nn, german.te$RESPONSE)
 ##problem ici: y a seulement une class dans le "cred.pred.nn" mais je sais pas pourquoi
 #count(german.te, "RESPONSE")
 #count(german.tr, "RESPONSE")
+#-> for finding the best value for the parameters -> turning - use caret: 1 hidden layer and 2/3 units
+#-> data set: we have to scale the continuous variable: -mean/st dev. we obtain values which are between -2 and +2 (less variability). nn will choose at random a start that is better, you will have a global min
+#-> nn are unstable, we have to find a minimum but it's an algorithm and we choose at random how to begin: the randomness is not good, we have a local min and we try to find a global min
 
 ```
 
@@ -162,6 +170,10 @@ step(credit.log)
 credit.log.better <- glm(RESPONSE ~ TELEPHONE + RADIO.TV + GUARANTOR + OTHER_INSTALL + MALE_SINGLE + RENT + FOREIGN + USED_CAR + AMOUNT + EDUCATION + DURATION + PRESENT_RESIDENT + NEW_CAR + HISTORY + SAV_ACCT + INSTALL_RATE + CHK_ACCT, data = german.tr, family = binomial)
 
 summary(credit.log.better)
+
+# a lot of variables + some cat variables we have too many levels, so the model has some difficulties to work 
+# low std error, it's good. 
+
 
 ```
 

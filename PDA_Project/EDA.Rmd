@@ -133,6 +133,8 @@ We are now going to dive deeper into the variables' analysis.
 library(psych)
 library(Hmisc)
 summary(GermanCredit)
+
+#-> age = 75 
 ```
 
 The summary gives us a first overview of the variables' details. Interestingly, some categorical variables present an unequal distribution of values. For instance, we note that the variable "CO.APPLICANT" is 0 959 times and 1 only 41 times. A similar comment can be made for other categorical variables like "MALE_MAR_or_WID", "FOREIGN", "MALE_DIV", "EDUCATION". This finding is particularly interesting as it raises the following question: is the value of a categorical variable discriminatory for the outcome of the response variable? For instance, if we have an observation where "CO.APPLICANT" = 1, what is the value of "RESPONSE"? QUESTION: Est ce qu'on met ca ou ce n est pas clair?
@@ -154,7 +156,7 @@ Only one observation has AGE = 125, so we remove it from the dataset.
 
 ```{r, echo=FALSE}
 GermanCredit <- GermanCredit %>% 
-  filter(AGE != "125")
+  filter(AGE != "125") 
 ```
 
 ```{r, echo=FALSE}
@@ -190,10 +192,11 @@ plot_density(GermanCredit[,-31],
 #   count() %>% 
 #   arrange(desc(DURATION))
 
-#QUESTION: there is one duration of 72 years.. outlier?
 ```
 --> age, amount and duration skewed on the right --> big difference between mean and median, to be checked
 --> enlever density plot pour install_rate et num_credits (ce ne sont pas des valeurs continues)
+--> num_dep into binary 
+--> change as factor
 
 
 We are going to comment the histogram for each variable. 
@@ -234,7 +237,8 @@ boxplot(NUM_CREDITS ~ RESPONSE, data = GermanCredit, xlab = "Response", varwidth
 
 
 ```
-
+-> vertical to compare the median
+-> variation
 ## Good vs Bad credits
 ```{r, echo=FALSE}
 
@@ -260,7 +264,8 @@ GermanCredit %>%
   explore_all(target = RESPONSE)
 
 ```
-
+--> guarantor = 2: 1
+--> education: 37 1
 Similarly to what we saw in the boxplot for the integer variables, now for all the catgorical ones we see how their value is distributed according to the outcome variable RESPONSE.
 
 We note that there are no discrimination for any variable, meaning that we are not going to be able to define RESPONSE only by looking at one variable.
@@ -277,7 +282,7 @@ plot_correlation(GermanCredit, type= 'c', cor_args = list( 'use' = 'complete.obs
 
 From the correlation matrix we see taht only duration and amount are correlated. Moreover, they are positively correlated. It seems like there is no correlation between the other variables, whis is actually positive since it means that we won't have problems of multicollinearity. 
 
-
+-> scale the data for the continuous variable it's better for nn: mettre dans le modeling
 
 
 
