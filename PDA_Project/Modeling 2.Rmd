@@ -12,37 +12,38 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r, echo=FALSE}
 library(caret)
-
-GermanCredit %>%
-    group_by(RESPONSE) %>%
-    count()
+# scaling numerical variables
+for (i in c(2,10,22)) {
+  GermanCredit[,i] <- scale(GermanCredit[,i])
+}
+    
 #--> balance the data: 
 # caret: we can specify that we have unbalanced data: down option. It's not necessary to balance directly, we can balance when we use caret.
 # sampling = "down"
 
-#scaling the data
-for (i in c(2,10,22)) {
-  GermanCredit[,i] <- scale(GermanCredit[,i])
-}
+# ctrl <- trainControl(method = "repeatedcv",
+#                      classProbs = TRUE,
+#                      ## new option here:
+#                      sampling = "down")
+# 
+# TrainData2 <- train(RESPONSE ~ ., data = GermanCredit,
+#                       trControl = ctrl)
 
-row.order <- sample(c(1:1000)) # first randomize the order of the rows
-german.tr <- GermanCredit[row.order[1:750],] # take the first 750 (random) rows of german for the training set
-german.te <- GermanCredit[row.order[751:1000],]
 ```
 
 ```{r, echo=FALSE}
-# library(caret)
-# set.seed(10666)
-# val_index <- createDataPartition(GermanCredit$RESPONSE, p = 0.5, list = FALSE)
-# TrainData <- GermanCredit[val_index, ]
-# #TrainClasses <- GermanCredit[val_index, 5]
-# head(TrainData)
-# summary(TrainData)
-# 
-# TestData <- GermanCredit[-val_index, ]
-# #TestClasses <- GermanCredit[-val_index, 5]
-# head(TestData)
-# summary(TestData)
+library(caret)
+set.seed(10666)
+val_index <- createDataPartition(GermanCredit$RESPONSE, p = 0.5, list = FALSE)
+TrainData <- GermanCredit[val_index, ]
+TrainClasses <- GermanCredit[val_index, 31]
+head(TrainData)
+summary(TrainData)
+
+TestData <- GermanCredit[-val_index, ]
+TestClasses <- GermanCredit[-val_index, 31]
+head(TestData)
+summary(TestData)
 ```
 
 # Decision Tree
@@ -52,7 +53,7 @@ german.te <- GermanCredit[row.order[751:1000],]
 library(rpart)
 set.seed(123)
 
-credit.ct <- rpart(RESPONSE ~ ., method = "class", data = german.tr, control = rpart.control(minsplit = 4, 
+credit.ct <- rpart(RESPONSE ~ ., method = "class", data = TrainData, control = rpart.control(minsplit = 4, 
     cp = 1e-05), model = TRUE)
 
 #summary(credit.ct) --> trop long 
@@ -116,11 +117,11 @@ rpart.plot(credit.prune, main = "", extra = 104, under = TRUE, faclen = 0) #On v
 ```{r, echo=FALSE}
 library(knitr)
 library(caret)
-credit.pred <- predict(credit.prune, german.te, type = "class")
-kable(table(credit.pred, german.te$RESPONSE), caption = "Prediction table")
+credit.pred <- predict(credit.prune, TestData, type = "class")
+kable(table(credit.pred, TestData$RESPONSE), caption = "Prediction table")
 #on a de meilleurs résultat en prunant avec 38 splits plutôt que 8 mais on voit rien sur les graphs avec 38 splits.
 
-confusionMatrix(credit.pred,german.te$RESPONSE)
+confusionMatrix(credit.pred,TestData$RESPONSE)
 #Accuracy: 0.73
 
 
@@ -132,7 +133,7 @@ confusionMatrix(credit.pred,german.te$RESPONSE)
 
 ```{r, echo=FALSE}
 library(nnet)
-credit.nn<- nnet(RESPONSE ~ ., data = german.tr, size = 1, rang = 0.1, decay = 5e-04, 
+credit.nn<- nnet(RESPONSE ~ ., data = TrainData, size = 1, rang = 0.1, decay = 5e-04, 
     Hess = T, maxit = 200)
 #Faut qu'on regarde pour tuner les hyperparamters
 
@@ -141,35 +142,23 @@ credit.nn<- nnet(RESPONSE ~ ., data = german.tr, size = 1, rang = 0.1, decay = 5
 ## Plot
 ```{r, echo = FALSE}
 library(NeuralNetTools)
-par(mar = numeric(4), family = "serif")
-plotnet(credit.nn, pos_col = "darkgreen", neg_col = "darkblue")
+library(gmodels)
 
+nnetFit <- caret::train(RESPONSE ~ ., data = TrainData, method = "nnet", preProcess = "range", 
+    trace = FALSE, trControl = trainControl(method = "cv"))
+
+nnetFit
+
+confusionMatrix(predict(nnetFit, TestData[, -31]), TestClasses)
+
+german.pred <- predict(nnetFit, TestData[, -31])
+CrossTable(x = TestClasses, y = german.pred, prop.chisq = FALSE)
 ```
-
-## Predictions
-
-```{r, echo=FALSE}
-library(caret)
-library(dplyr)
-credit.pred.nn <- predict(credit.nn, german.te, type= "class")
-
-kable(table(german.te$RESPONSE, credit.pred.nn), caption = "Prediction table")
-confusionMatrix(credit.pred.nn, german.te$RESPONSE)
-
-##problem ici: y a seulement une class dans le "cred.pred.nn" mais je sais pas pourquoi
-#count(german.te, "RESPONSE")
-#count(german.tr, "RESPONSE")
-#-> for finding the best value for the parameters -> turning - use caret: 1 hidden layer and 2/3 units
-#-> data set: we have to scale the continuous variable: -mean/st dev. we obtain values which are between -2 and +2 (less variability). nn will choose at random a start that is better, you will have a global min
-#-> nn are unstable, we have to find a minimum but it's an algorithm and we choose at random how to begin: the randomness is not good, we have a local min and we try to find a global min
-
-```
-
 
 # Logistic regression 
 
 ```{r, echo=FALSE}
-credit.log <- glm(RESPONSE ~ ., data = german.tr, family = binomial)
+credit.log <- glm(RESPONSE ~ ., data = TrainData, family = binomial)
 summary(credit.log)
 
 ```
@@ -183,7 +172,10 @@ step(credit.log)
 ## Better model
 
 ```{r, echo=FALSE}
-credit.log.better <- glm(RESPONSE ~ TELEPHONE + RADIO.TV + GUARANTOR + OTHER_INSTALL + MALE_SINGLE + RENT + FOREIGN + USED_CAR + AMOUNT + EDUCATION + DURATION + PRESENT_RESIDENT + NEW_CAR + HISTORY + SAV_ACCT + INSTALL_RATE + CHK_ACCT, data = german.tr, family = binomial)
+credit.log.better <- glm(formula = RESPONSE ~ CHK_ACCT + DURATION + HISTORY + USED_CAR + 
+    FURNITURE + RADIO.TV + RETRAINING + AMOUNT + SAV_ACCT + INSTALL_RATE + 
+    GUARANTOR + PROP_UNKN_NONE + AGE + RENT + NUM_CREDITS + TELEPHONE + 
+    FOREIGN, family = binomial, data = TrainData)
 
 summary(credit.log.better)
 
@@ -200,8 +192,8 @@ coef(credit.log.better)
 ## Predictions
 ```{r, echo=FALSE}
 credit.log.pred <- predict(credit.log.better, type = "response")
-kable(table(credit.log.pred, german.te$RESPONSE), caption = "Prediction table")
-confusionMatrix(credit.log.pred, german.te$RESPONSE)
+kable(table(credit.log.pred, TestData$RESPONSE), caption = "Prediction table")
+confusionMatrix(credit.log.pred, TestData$RESPONSE)
 
 ##Même problème qu'avant --> je pense que c'est lié au imbalanced data
 
@@ -233,6 +225,40 @@ confusionMatrix(credit.log.pred, german.te$RESPONSE)
 
 ```{r, echo= FALSE}
 
+library(caret) 
+library(randomForest)
+library(funModeling)
+form <- formula(RESPONSE ~ .)
+# Call the function:
+integ_mod_1 <- data_integrity_model(data = GermanCredit, model_name = "randomForest") 
 
+integ_mod_1$data_ok
+# Any errors ?
+integ_mod_1
+weatherRF <- randomForest(formula=form,
+                          data=GermanCredit, 
+                          ntree=500, 
+                          mtry=4, 
+                          importance=TRUE, 
+                          localImp=TRUE, 
+                          na.action=na.roughfix, 
+                          replace=FALSE)
+
+
+modelLookup(model="rf") 
+system.time(
+    model_rf <- caret::train(RESPONSE ~ ., data= TrainData,
+                            method="rf",
+                            preProcess=NULL, 
+                            trControl=trainControl(method="repeatedcv", 
+                                                   number=10, repeats=10, 
+                                                   verboseIter=FALSE)
+                             )
+)
+
+
+model_rf
+
+weather.pred.1 <- predict(model_rf, data[-train, vars.pred]) confusionMatrix(weather.pred.1, data$RainTomorrow[-train]) CrossTable(x=data$RainTomorrow[-train], y=weather.pred.1, prop.chisq=FALSE)
 ```
 
