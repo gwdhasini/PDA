@@ -28,6 +28,16 @@ for (i in c(2,10,22)) {
 row.order <- sample(c(1:1000)) # first randomize the order of the rows
 german.tr <- GermanCredit[row.order[1:750],] # take the first 750 (random) rows of german for the training set
 german.te <- GermanCredit[row.order[751:1000],]
+
+# Balancing the data
+n.zero <- sum(german.tr$RESPONSE == "0")
+n.one <- sum(german.tr$RESPONSE == "1")
+set.seed(345)
+index.zero <- which(german.tr$RESPONSE == "0")
+index.one <- sample(x = which(german.tr$RESPONSE == "1"), size = n.zero, replace = FALSE)
+german.tr <- german.tr[c(index.zero,index.one),]
+summary(german.tr)
+
 ```
 
 ```{r, echo=FALSE}
@@ -50,10 +60,10 @@ german.te <- GermanCredit[row.order[751:1000],]
 
 ```{r, echo=FALSE}
 library(rpart)
+library(caret)
 set.seed(123)
 
-credit.ct <- rpart(RESPONSE ~ ., method = "class", data = german.tr, control = rpart.control(minsplit = 4, 
-    cp = 1e-05), model = TRUE)
+credit.ct <- rpart(RESPONSE ~ ., method = "class", data = german.tr, control = rpart.control(minsplit = 4, cp = 0.001), model = TRUE) #cp changé comme demandé par le prog 0.001 --> 0.01 (# cp is too small, 0.01)
 
 #summary(credit.ct) --> trop long 
 
@@ -62,6 +72,19 @@ plot(credit.ct, cex = 1)
 text(credit.ct, cex = 0.6)
 
 #J'ai pas fait le recursive partitioning up close 
+
+#train_control <- trainControl(sampling = "down")
+#credit.ct <- train(
+#    form = RESPONSE ~ .,
+ #   data = german.tr,
+  #  method = "rpart",
+   # preProcess = c("center", "scale"),
+    #trControl = train_control
+#)
+
+#confusionMatrix(predict.train(credit.ct, newdata = german.te), 
+             #   german.te$RESPONSE)$overall[1]
+
 
 ```
 
@@ -75,7 +98,12 @@ plotcp(credit.ct)
 #Lowest xerror = 0.83333
 #1-SE Rule = 0.91781 + 0.055387 = 0.973197 corresponding to cp = 0.0060883  (38 splits) but for visibility purpose let's take the second best --> cp = 0.0159817 (8 splits)
 # Il avait dit que size = splits + 1 ---> ce n'est pas le cas ici . random forrest is better.
-# cp is too small, 0.01
+
+
+#After splitting (graph complètement changé)
+
+#Lowest xerror = 0.7
+#1-SE Rule = 0.7 + 0.04 =  0.74 which corresponds to cp = 7e-03 (22 splits) but according to graph cp = 0.017
 ```
 
 ## Tree Number 
@@ -105,7 +133,7 @@ with(credit.ct, {
 
 ```{r, echo=FALSE}
 require(rpart.plot)
-credit.prune <- prune(credit.ct, cp = 0.0159817)
+credit.prune <- prune(credit.ct, cp = 0.007)
 summary(credit.prune)
 rpart.plot(credit.prune, main = "", extra = 104, under = TRUE, faclen = 0) #On voit quand même rien du tout
 
@@ -122,6 +150,7 @@ kable(table(credit.pred, german.te$RESPONSE), caption = "Prediction table")
 
 confusionMatrix(credit.pred,german.te$RESPONSE)
 #Accuracy: 0.73
+#Accuracy after balancing: 0.74
 
 
 ``` 
@@ -132,7 +161,7 @@ confusionMatrix(credit.pred,german.te$RESPONSE)
 
 ```{r, echo=FALSE}
 library(nnet)
-credit.nn<- nnet(RESPONSE ~ ., data = german.tr, size = 1, rang = 0.1, decay = 5e-04, 
+credit.nn<- nnet(RESPONSE ~ ., data = german.tr, size = 6, rang = 0.1, decay = 5e-04, 
     Hess = T, maxit = 200)
 #Faut qu'on regarde pour tuner les hyperparamters
 
@@ -149,12 +178,10 @@ plotnet(credit.nn, pos_col = "darkgreen", neg_col = "darkblue")
 ## Predictions
 
 ```{r, echo=FALSE}
-library(caret)
 library(dplyr)
 credit.pred.nn <- predict(credit.nn, german.te, type= "class")
 
 kable(table(german.te$RESPONSE, credit.pred.nn), caption = "Prediction table")
-confusionMatrix(credit.pred.nn, german.te$RESPONSE)
 
 ##problem ici: y a seulement une class dans le "cred.pred.nn" mais je sais pas pourquoi
 #count(german.te, "RESPONSE")
@@ -165,6 +192,24 @@ confusionMatrix(credit.pred.nn, german.te$RESPONSE)
 
 ```
 
+## Caret package for NN
+
+```{r, echo=FALSE}
+library(caret)
+hp_nn <- expand.grid(size = 3:6, decay = seq(0, 0.5, 0.05))
+set.seed(2006)
+credit.nn.caret <- train (form = RESPONSE~., data=german.tr,
+                 method = "nnet", preProcess = c("center", "scale"),
+                 tuneGrid = hp_nn)
+print(credit.nn.caret)
+
+confusionMatrix(predict.train(credit.nn.caret, newdata = german.te), 
+                german.te$RESPONSE)$overall[1]
+#Accuracy was used to select the optimal model using the largest value.
+#The final values used for the model were size = 6 and decay = 0.45.
+#Accuracy: 0.704 
+
+```
 
 # Logistic regression 
 
@@ -183,7 +228,12 @@ step(credit.log)
 ## Better model
 
 ```{r, echo=FALSE}
-credit.log.better <- glm(RESPONSE ~ TELEPHONE + RADIO.TV + GUARANTOR + OTHER_INSTALL + MALE_SINGLE + RENT + FOREIGN + USED_CAR + AMOUNT + EDUCATION + DURATION + PRESENT_RESIDENT + NEW_CAR + HISTORY + SAV_ACCT + INSTALL_RATE + CHK_ACCT, data = german.tr, family = binomial)
+credit.log.better <-
+  glm(
+    RESPONSE ~ FOREIGN + EMPLOYMENT + INSTALL_RATE + FURNITURE + USED_CAR + EDUCATION + DURATION + REAL_ESTATE + MALE_SINGLE + PRESENT_RESIDENT + OTHER_INSTALL + AMOUNT + TELEPHONE + RETRAINING + TELEPHONE + NEW_CAR + SAV_ACCT + CHK_ACCT,
+    data = german.tr,
+    family = binomial
+  )
 
 summary(credit.log.better)
 
@@ -199,13 +249,25 @@ coef(credit.log.better)
 
 ## Predictions
 ```{r, echo=FALSE}
+german.te.better <- german.te %>% select(-c("HISTORY", "RADIO.TV", "MALE_DIV", "MALE_MAR_or_WID", "CO.APPLICANT", "GUARANTOR", "PROP_UNKN_NONE", "AGE", "RENT", "OWN_RES", "NUM_CREDITS", "JOB", "NUM_DEPENDENTS"))
 credit.log.pred <- predict(credit.log.better, type = "response")
-kable(table(credit.log.pred, german.te$RESPONSE), caption = "Prediction table")
-confusionMatrix(credit.log.pred, german.te$RESPONSE)
-
+kable(table(credit.log.pred, german.te.better$RESPONSE), caption = "Prediction table") #still problem but works with caret package 
 ##Même problème qu'avant --> je pense que c'est lié au imbalanced data
 
+##Je pense que le problème est lié au fait que le modèle a moins de variable (enlevées après le step) que le test set. J'ai essayé de les enelver manuellement mais ça marche pas...
+
 ```
+
+#Using Caret for LR
+```{r, echo=FALSE}
+credit.log.caret <- train(form=RESPONSE~., data = german.tr, method = "glm")
+print(credit.log.caret)
+summary(credit.log.caret)
+
+confusionMatrix(predict.train(credit.log.caret, newdata = german.te), 
+                german.te$RESPONSE)
+```
+
 
 
 # Discriminant Analysis
