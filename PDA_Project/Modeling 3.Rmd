@@ -11,263 +11,132 @@ knitr::opts_chunk$set(echo = TRUE)
 # Partition of Data
 
 ```{r, echo=FALSE}
-library(caret)
-
-GermanCredit %>%
-    group_by(RESPONSE) %>%
-    count()
-#--> balance the data: 
-# caret: we can specify that we have unbalanced data: down option. It's not necessary to balance directly, we can balance when we use caret.
-# sampling = "down"
-
-#scaling the data
-for (i in c(2,10,22)) {
-  GermanCredit[,i] <- scale(GermanCredit[,i])
-}
 
 row.order <- sample(c(1:1000)) # first randomize the order of the rows
 german.tr <- GermanCredit[row.order[1:750],] # take the first 750 (random) rows of german for the training set
 german.te <- GermanCredit[row.order[751:1000],]
 
-# Balancing the data
-n.zero <- sum(german.tr$RESPONSE == "0")
-n.one <- sum(german.tr$RESPONSE == "1")
-set.seed(345)
-index.zero <- which(german.tr$RESPONSE == "0")
-index.one <- sample(x = which(german.tr$RESPONSE == "1"), size = n.zero, replace = FALSE)
-german.tr <- german.tr[c(index.zero,index.one),]
-summary(german.tr)
 
 ```
 
-```{r, echo=FALSE}
-# library(caret)
-# set.seed(10666)
-# val_index <- createDataPartition(GermanCredit$RESPONSE, p = 0.5, list = FALSE)
-# TrainData <- GermanCredit[val_index, ]
-# #TrainClasses <- GermanCredit[val_index, 5]
-# head(TrainData)
-# summary(TrainData)
-# 
-# TestData <- GermanCredit[-val_index, ]
-# #TestClasses <- GermanCredit[-val_index, 5]
-# head(TestData)
-# summary(TestData)
-```
 
-# Decision Tree
-## Model
+# Decision Tree with Caret
 
 ```{r, echo=FALSE}
-library(rpart)
 library(caret)
-set.seed(123)
-
-credit.ct <- rpart(RESPONSE ~ ., method = "class", data = german.tr, control = rpart.control(minsplit = 4, cp = 0.001), model = TRUE) #cp changé comme demandé par le prog 0.001 --> 0.01 (# cp is too small, 0.01)
-
-#summary(credit.ct) --> trop long 
-
-par(pty = "s", mar = c(1, 1, 1, 1))
-plot(credit.ct, cex = 1)
-text(credit.ct, cex = 0.6)
-
-#J'ai pas fait le recursive partitioning up close 
-
-#train_control <- trainControl(sampling = "down")
-#credit.ct <- train(
-#    form = RESPONSE ~ .,
- #   data = german.tr,
-  #  method = "rpart",
-   # preProcess = c("center", "scale"),
-    #trControl = train_control
-#)
-
-#confusionMatrix(predict.train(credit.ct, newdata = german.te), 
-             #   german.te$RESPONSE)$overall[1]
+ct.caret <- train(RESPONSE ~ .,
+                         data=german.tr,
+                         method="rpart",
+                         preProcess=c("center", "scale"),
+                         trControl=trainControl(method="repeatedcv", number=10,
+                         repeats=10, verboseIter=FALSE, sampling = "down")
+                         )
 
 
 ```
 
-## Complexity Table
-
+  ## Best Complexity parameter 
 ```{r, echo=FALSE}
-printcp(credit.ct)
-par(pty = "s")
-plotcp(credit.ct)
-
-#Lowest xerror = 0.83333
-#1-SE Rule = 0.91781 + 0.055387 = 0.973197 corresponding to cp = 0.0060883  (38 splits) but for visibility purpose let's take the second best --> cp = 0.0159817 (8 splits)
-# Il avait dit que size = splits + 1 ---> ce n'est pas le cas ici . random forrest is better.
-
-
-#After splitting (graph complètement changé)
-
-#Lowest xerror = 0.7
-#1-SE Rule = 0.7 + 0.04 =  0.74 which corresponds to cp = 7e-03 (22 splits) but according to graph cp = 0.017
-```
-
-## Tree Number 
-
-```{r, echo = FALSE}
-par(pty = "s")
-with(credit.ct, plot(cptable[, 3], xlab = "Tree Number", ylab = "Resubstitution Error (R)", 
-    type = "b"))
-
-par(pty = "s")
-with(credit.ct, plot(cptable[, 4], xlab = "Tree Number", ylab = "Cross-Validated Error (R(cv))", 
-    type = "b"))
-
-par(pty = "s")
-plotcp(credit.ct)
-with(credit.ct, {
-    lines(cptable[, 2] + 1, cptable[, 3], type = "b", col = "red")
-    legend(2.7, 1, c("Resub. Error", "CV Error", "min(CV Error)+1SE"), lty = c(1, 
-        1, 2), col = c("red", "black", "black"), bty = "n", cex = 0.8)
-})
-
-##Il faut revoir ça, problème dans légende 
+print(ct.caret) 
+plot(ct.caret)
 
 ```
 
-## Pruning 
-
+  ## Confusion Matrix
 ```{r, echo=FALSE}
-require(rpart.plot)
-credit.prune <- prune(credit.ct, cp = 0.007)
-summary(credit.prune)
-rpart.plot(credit.prune, main = "", extra = 104, under = TRUE, faclen = 0) #On voit quand même rien du tout
-
-```
-
-## Predictions
-
-```{r, echo=FALSE}
-library(knitr)
-library(caret)
-credit.pred <- predict(credit.prune, german.te, type = "class")
-kable(table(credit.pred, german.te$RESPONSE), caption = "Prediction table")
-#on a de meilleurs résultat en prunant avec 38 splits plutôt que 8 mais on voit rien sur les graphs avec 38 splits.
-
-confusionMatrix(credit.pred,german.te$RESPONSE)
-#Accuracy: 0.73
-#Accuracy after balancing: 0.74
+confusionMatrix(predict.train(ct.caret, newdata = german.te), 
+                german.te$RESPONSE)
 
 
 ``` 
 
-
-# Neural Network
-
-
+  ## Tree drawing
 ```{r, echo=FALSE}
-library(nnet)
-credit.nn<- nnet(RESPONSE ~ ., data = german.tr, size = 6, rang = 0.1, decay = 5e-04, 
-    Hess = T, maxit = 200)
-#Faut qu'on regarde pour tuner les hyperparamters
+plot(ct.caret$finalModel)
+text(ct.caret$finalModel)
 
 ```
 
-## Plot
-```{r, echo = FALSE}
-library(NeuralNetTools)
-par(mar = numeric(4), family = "serif")
-plotnet(credit.nn, pos_col = "darkgreen", neg_col = "darkblue")
+# Neural Network with Caret
 
-```
 
-## Predictions
-
-```{r, echo=FALSE}
-library(dplyr)
-credit.pred.nn <- predict(credit.nn, german.te, type= "class")
-
-kable(table(german.te$RESPONSE, credit.pred.nn), caption = "Prediction table")
-
-##problem ici: y a seulement une class dans le "cred.pred.nn" mais je sais pas pourquoi
-#count(german.te, "RESPONSE")
-#count(german.tr, "RESPONSE")
-#-> for finding the best value for the parameters -> turning - use caret: 1 hidden layer and 2/3 units
-#-> data set: we have to scale the continuous variable: -mean/st dev. we obtain values which are between -2 and +2 (less variability). nn will choose at random a start that is better, you will have a global min
-#-> nn are unstable, we have to find a minimum but it's an algorithm and we choose at random how to begin: the randomness is not good, we have a local min and we try to find a global min
-
-```
-
-## Caret package for NN
-
-```{r, echo=FALSE}
-library(caret)
-hp_nn <- expand.grid(size = 3:6, decay = seq(0, 0.5, 0.05))
+```{r, echo=FALSE, include = FALSE}
 set.seed(2006)
-credit.nn.caret <- train (form = RESPONSE~., data=german.tr,
-                 method = "nnet", preProcess = c("center", "scale"),
-                 tuneGrid = hp_nn)
+credit.nn.caret <- train (
+  form = RESPONSE ~ .,
+  data = german.tr,
+  method = "nnet",
+  preProcess = c("center", "scale"),
+  trControl = trainControl(
+    method = "repeatedcv",
+    number = 10,
+    repeats = 10,
+    verboseIter = FALSE,
+    sampling = "down")
+)
+
+
+
+```
+
+
+  ## Accuracy measure
+  
+```{r, echo=FALSE}
 print(credit.nn.caret)
 
+```
+
+  ## Confusion Matrix
+```{r, echo=FALSE}
 confusionMatrix(predict.train(credit.nn.caret, newdata = german.te), 
-                german.te$RESPONSE)$overall[1]
-#Accuracy was used to select the optimal model using the largest value.
-#The final values used for the model were size = 6 and decay = 0.45.
-#Accuracy: 0.704 
+                german.te$RESPONSE)
+``` 
+
+  ## Neural Network drawing
+```{r, echo=FALSE}
+library(NeuralNetTools)
+plotnet(credit.nn.caret, pos_col = "darkgreen", neg_col = "darkblue")
 
 ```
 
-# Logistic regression 
+# Logistic regression with caret
 
 ```{r, echo=FALSE}
-credit.log <- glm(RESPONSE ~ ., data = german.tr, family = binomial)
-summary(credit.log)
-
-```
-
-## Finding a Better Model
-
-```{r, echo=FALSE}
-step(credit.log)
-
-```
-## Better model
-
-```{r, echo=FALSE}
-credit.log.better <-
-  glm(
-    RESPONSE ~ FOREIGN + EMPLOYMENT + INSTALL_RATE + FURNITURE + USED_CAR + EDUCATION + DURATION + REAL_ESTATE + MALE_SINGLE + PRESENT_RESIDENT + OTHER_INSTALL + AMOUNT + TELEPHONE + RETRAINING + TELEPHONE + NEW_CAR + SAV_ACCT + CHK_ACCT,
+credit.log.caret <-
+  train(
+    form = RESPONSE ~ .,
     data = german.tr,
-    family = binomial
+    method = "glm",
+    preProcess = c("center", "scale"),
+    trControl = trainControl(
+      method = "repeatedcv",
+      number = 10,
+      repeats = 10,
+      verboseIter = FALSE,
+      sampling = "down"
+    )
   )
 
-summary(credit.log.better)
-
-# a lot of variables + some cat variables we have too many levels, so the model has some difficulties to work 
-# low std error, it's good. 
-
 
 ```
 
+
+  ## Accuracy measure
+  
 ```{r, echo=FALSE}
-coef(credit.log.better)
-```
-
-## Predictions
-```{r, echo=FALSE}
-german.te.better <- german.te %>% select(-c("HISTORY", "RADIO.TV", "MALE_DIV", "MALE_MAR_or_WID", "CO.APPLICANT", "GUARANTOR", "PROP_UNKN_NONE", "AGE", "RENT", "OWN_RES", "NUM_CREDITS", "JOB", "NUM_DEPENDENTS"))
-credit.log.pred <- predict(credit.log.better, type = "response")
-kable(table(credit.log.pred, german.te.better$RESPONSE), caption = "Prediction table") #still problem but works with caret package 
-##Même problème qu'avant --> je pense que c'est lié au imbalanced data
-
-##Je pense que le problème est lié au fait que le modèle a moins de variable (enlevées après le step) que le test set. J'ai essayé de les enelver manuellement mais ça marche pas...
-
-```
-
-#Using Caret for LR
-```{r, echo=FALSE}
-credit.log.caret <- train(form=RESPONSE~., data = german.tr, method = "glm")
 print(credit.log.caret)
 summary(credit.log.caret)
 
-confusionMatrix(predict.train(credit.log.caret, newdata = german.te), 
-                german.te$RESPONSE)
 ```
 
+  ## Confusion Matrix
+```{r, echo=FALSE}
+confusionMatrix(predict.train(credit.log.caret, newdata = german.te),
+                german.te$RESPONSE)
+
+
+``` 
 
 
 # Discriminant Analysis
