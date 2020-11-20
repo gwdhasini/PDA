@@ -253,12 +253,13 @@ After having deeply analysed the dataset, we are now going to look at the correl
 ## Correlations
 
 ```{r, echo=FALSE, fig.width= 8, fig.height= 7}
-library(GGally)
+library(DataExplorer)
 plot_correlation(GermanCredit, type= 'c', cor_args = list( 'use' = 'complete.obs')) #Library DataExplorer
 ```
 
 
 From the correlation matrix we see that only duration and amount are correlated. Moreover, they are positively correlated. It seems like there is no correlation between the other variables, meaning that they are independent, which is actually positive since it means that we will not have problems of multicollinearity. 
+--> PIA changer
 
 
 
