@@ -141,10 +141,59 @@ confusionMatrix(predict.train(credit.log.caret, newdata = german.te),
 # Discriminant Analysis
 
 ```{r, echo=FALSE}
+#LDA
+library(MASS)
+lda.fit <- lda(RESPONSE ~ ., data = GermanCredit)
+lda.fit
+
+```
+
+
+## Predictions
+```{r, echo=FALSE}
+lda.pred <- predict(lda.fit, GermanCredit)
+names(lda.pred) 
+
+head(lda.pred$posterior)
 
 
 ```
 
+## Confusion Matrix
+```{r, echo=FALSE}
+lda.class <- lda.pred$class
+kable(table(lda.class, GermanCredit$RESPONSE), caption = "Prediction table.")
+
+prev.prob.lda <- data.frame(actual = GermanCredit$RESPONSE, prob = lda.pred$posterior)
+prev.class.lda <- tibble(actual = GermanCredit$RESPONSE, class = lda.class)
+confusionMatrix(prev.class.lda$class, prev.class.lda$actual)
+
+```
+
+```{r, echo=FALSE}
+
+library(tidyverse)
+library(ggthemes)
+prev.prob.lda$class <- lda.class
+prev.prob.lda$correct <- ifelse(prev.class.lda$actual == prev.class.lda$class, TRUE, 
+    FALSE)
+ggplot(prev.prob.lda, aes(x = class, fill = correct)) + 
+  geom_bar(position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + 
+  theme_get()
+```
+
+# QDA
+
+```{r, echo=FALSE}
+qda.fit <- qda(RESPONSE ~ ., data = GermanCredit)
+qda.fit
+
+#ca me donne une erreure je comprends pas d'où ca viennnnnt
+qda.class <- predict(qda.fit, GermanCredit$RESPONSE)$class 
+table(qda.class, Direction.2005)
+```
+    
 # KNN
 
 ```{r, echo=FALSE}
@@ -162,7 +211,99 @@ confusionMatrix(predict.train(credit.log.caret, newdata = german.te),
 # Ensemble methods (Random Forest)
 
 ```{r, echo= FALSE}
+library(randomForest)
+library(funModeling)
 
+form <- formula (RESPONSE ~.)
+
+# Call the function:
+integ_mod_1 <- data_integrity_model(data = GermanCredit, model_name = "randomForest")
+integ_mod_1$data_ok
+
+CreditRF <- randomForest(formula=form, 
+                          data=german.tr, 
+                          ntree=500, mtry=4, 
+                          importance=TRUE, 
+                          localImp=TRUE,
+                          na.action=na.roughfix,
+                          replace=FALSE)
+
+print(CreditRF)
 
 ```
+
+## Variable importance analysis
+``` {r, echo=FALSE}
+library(lessR)
+head(round(importance(CreditRF), 2))
+
+details(varImpPlot(CreditRF))
+```
+
+## Diagnostic model: error rate
+
+```{r, echo = FALSE}
+round(head(CreditRF$err.rate, 15), 4)
+
+details(plot(CreditRF))
+
+```
+
+
+## Confusion matrix
+
+```{r, echo = FALSE}
+CreditRF$confusion
+
+```
+
+
+## Confusion matrix for the test set
+```{r, echo = FALSE}
+library(gmodels)
+CreditRF.pred<-predict(CreditRF, german.te, type="class")
+CreditRF.pred
+
+table(true=GermanCredit$RESPONSE[-c(1:750)], pred=CreditRF.pred) #PIA: est ce que c est juste de faire (c(1:750))??
+
+CrossTable(x=GermanCredit$RESPONSE[-c(1:750)], y=CreditRF.pred, prop.chisq=FALSE)
+
+```
+
+## RF with repeated cross-validation
+
+```{r, echo = FALSE}
+library(caret)
+modelLookup(model="rf")
+
+#ca prend beaucouuuup de temps mais a la fin ca marche ahah
+system.time(
+  model_rf <- caret::train(RESPONSE ~ .,
+                         data=german.tr,
+                         method="rf",
+                         preProcess=NULL,
+                         trControl=trainControl(method="repeatedcv", number=10,
+                         repeats=10, verboseIter=FALSE, sampling="down")
+                         )
+)
+
+
+model_rf
+
+```
+
+
+## Confusion matrix
+
+```{r, echo = FALSE}
+creditsRF.pred.1 <- predict(model_rf, german.te)
+confusionMatrix(creditsRF.pred.1, german.te$RESPONSE)
+
+CrossTable(x=german.te$RESPONSE, y=creditsRF.pred.1, prop.chisq=FALSE)
+
+```
+
+
+
+
 
