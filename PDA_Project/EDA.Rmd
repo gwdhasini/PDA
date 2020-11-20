@@ -157,9 +157,7 @@ summary(GermanCredit)
 The summary gives us a first overview of the variables' details. Interestingly, some categorical variables present an unequal distribution of values. For instance, we note that the variable "CO.APPLICANT" has 959 times "0" and only 41 times "1". A similar comment can be made for other categorical variables like "MALE_MAR_or_WID", "FOREIGN", "MALE_DIV", "EDUCATION". 
 
 
-Let us now analyse the numerical variables. For those, we can look at the min and the max, which gives us a range. For instance, we see that in this bank the duration of the loan goes from 4 to 72 months. The larger the range, the higher the chance of having outliers. For example, the "AMOUNT" variable has a very big range: from 250 to 18'424.
-
-H: Est-ce qu'on développe un peu plus pour les numerical variables? 
+Let us now analyse the numerical variables. For those, we can look at the min and the max, which gives us a range. For instance, we see that in this bank the duration of the loan goes from 4 to 72 months. The larger the range, the higher the chance of having outliers. For example, the "AMOUNT" variable has a very big range: from 250 to 18'424. Moreover, we note that for all the numerical variables the median is lower than the mean. For instance, "AMOUNT" has a median of 2320 and a mean of 3271, which will mean that the histogram will present a long right tail. 
 
 ```{r, echo=FALSE}
 library(inspectdf)
@@ -258,8 +256,10 @@ plot_correlation(GermanCredit, type= 'c', cor_args = list( 'use' = 'complete.obs
 ```
 
 
-From the correlation matrix we see that only duration and amount are correlated. Moreover, they are positively correlated. It seems like there is no correlation between the other variables, meaning that they are independent, which is actually positive since it means that we will not have problems of multicollinearity. 
---> PIA changer
+From the correlation matrix we see that only "DURATION" and "AMOUNT" are correlated. Moreover, they are positively correlated. When working on the models we should be aware of this correlation and eventually compute the VIF coefficient in order to be sure that there is no multicollinearity problems.
+
+It seems like there is no correlation between the other variables, meaning that they are independent, which is actually positive since it means that for these variables we will not have problems of multicollinearity. 
+
 
 
 

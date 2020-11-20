@@ -32,7 +32,6 @@ ct.caret <- train(RESPONSE ~ .,
                          repeats=10, verboseIter=FALSE, sampling = "down")
                          )
 
-
 ```
 
   ## Best Complexity parameter 
