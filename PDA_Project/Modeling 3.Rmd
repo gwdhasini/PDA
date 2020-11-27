@@ -25,10 +25,11 @@ In order to be consistent, we decided to build all models using the caret packag
 
 # Decision Tree with Caret
 
-The first model that we investigate is the decision tree. The model is built on the training set and then the test set is used to measure the prediction capacity of the model. The data is normalised through the preProcess argument. We used the repeated cross-validation method, in order to achieve better results. Also, we balance the data thanks to "sampling = down", to ensure that the prediction capacity on both classes is balanced. Lastly, we perform a tuning of the complexity parameter (cp), to further improve the model.
+The first model that we investigate is the decision tree. The model is built on the training set and then the test set is used to measure the prediction capacity of the model. The data is normalised through the preProcess argument. We use the repeated cross-validation method, in order to achieve better results. Also, we balance the data thanks to "sampling = down", to ensure that the prediction capacity on both classes is balanced. Lastly, we perform a tuning of the complexity parameter (cp), to further improve the model.
 
 ```{r, echo=FALSE}
 library(caret)
+set.seed(12)
 hp_ct <- data.frame(cp = seq(from = 0.03, to = 0, by = -0.003))
 ct.caret <- train(
   RESPONSE ~ .,
@@ -49,12 +50,13 @@ ct.caret <- train(
 
 ## Best Complexity parameter 
 ```{r, echo=FALSE}
-print(ct.caret) 
+ct.caret$bestTune 
+print(ct.caret)
 plot(ct.caret)
 
 ```
 
-By the information provided above, we can see that the best accuracy on the training set is of 65.9%. This is achieved by using a complexity parameter of 0.006.
+By the information provided above, we can see that the best accuracy on the training set is of 65.9%. This is achieved by using a complexity parameter of 0.012.
 
   ## Confusion Matrix
 
@@ -67,7 +69,7 @@ confusionMatrix(predict.train(ct.caret, newdata = german.te),
 
 ``` 
 
-As we can see, the overall accuracy on the test set is of 62.8%. However, one can observe that even though the prediction capacity on each class is more balanced than if we had not balanced the data, the sensitivity class (1) is better predicted (70.8%) compared to the specificity class (59.6%). This is confirmed in the confusion matrix as well. To further explain, the "1" class is correctly predicted 106 times out of 127 times. Whereas, the "0" class is correctly predicted 51 times out of 123 times. This means that the model performs well in predicting good credit rating candidates. However, if the aim of the project is to uncover bad credit rating candidates based on the explanatory variables, the model will do a poorer job.
+As we can see, the overall accuracy on the test set is of 66.4%. However, one can observe that even though the prediction capacity on each class is more balanced than if we had not balanced the data, the specificity class is better predicted (67.8%) compared to the sensitivity class (62.7%). This is confirmed in the confusion matrix as well. To further explain, the "1" class is correctly predicted 124 times out of 183 times. Whereas, the "0" class is correctly predicted 42 times out of 67 times. This means that the model performs well in predicting good credit rating candidates. However, if the aim of the project is to uncover bad credit rating candidates based on the explanatory variables, the model will do a poorer job.
 
   ## Tree drawing
   
@@ -110,15 +112,20 @@ credit.nn.caret <- train (
 ## Accuracy measure
   
 ```{r, echo=FALSE}
+credit.nn.caret$bestTune 
 print(credit.nn.caret)
 plot(credit.nn.caret)
 ```
-  
+As we can see, the highest accuracy (68.9%) on the training set can be obtained by setting size = 2 and decay = 0.5.
+
 ## Confusion Matrix
 ```{r, echo=FALSE}
 confusionMatrix(predict.train(credit.nn.caret, newdata = german.te), 
                 german.te$RESPONSE)
 ``` 
+The results on the training set are quite good. Overall we obtain an accuracy of 72.4%. The prediction of each class is balanced even though the specificity class (75.4%) is better predicted than the sensitivity class (64.2%), similarly to the Decision Tree model. 
+
+The results are confirmed in the confusion matrix where the "1" class is correctly predicted 138 times out of 183 times. Whereas, the "0" class is correctly predicted 43 times out of 67 times. In this way, the Neural Network outperforms the Decision Tree model.
 
   ## Neural Network drawing
 ```{r, echo=FALSE}
@@ -128,6 +135,8 @@ plotnet(credit.nn.caret, pos_col = "darkgreen", neg_col = "darkblue")
 ```
 
 # Logistic regression with caret
+
+The third model that we considered is the Logistic Regression, that is a powerful classifier for binary outputs.
 
 ```{r, echo=FALSE, warning = FALSE}
 set.seed(1)
@@ -156,7 +165,11 @@ credit.log.caret <-
 print(credit.log.caret)
 summary(credit.log.caret)
 
+
 ```
+The results of the training show that not all variables significantly impact the RESPONSE variable. For instance, according to the model, variables such as JOB or TELEPHONE do not impact the RESPONSE variable significantly. Other variables may impact the explained variable at different thresholds. For example, CHK_ACCT3 has a significant influence at a threshold of 0.1%, whereas HISTORY OTHER_INSTALL has an impact a threshold of 5% and REAL_ESTATE at 10%.
+
+Overall, the model presents a good accuracy (69.7%) on the training set. However, to truly evaluate its prediction capacity we would need to consider the accuracy on the test set.
 
 ## Confusion Matrix
 ```{r, echo=FALSE}
@@ -165,7 +178,13 @@ confusionMatrix(predict.train(credit.log.caret, newdata = german.te),
 
 
 ``` 
+The analysis of the predictions on the test set reveals that it is as well a good model since the overall accuracy is of 70.4%. This means, that overall the Logistic Regression outperforms the Decision Tree but underperforms compared to the Neural Network.
 
+When looking in more details, we can see that both classes are more or less well predicted. In contrary to the two previous models, this time the sensitivity class (74.6%) is better predicted than the specificity class (68.9%). The results on the confusion matrix confirm this. To further explain, the "1" class is correctly predicted 126 times out of 183. Whereas, the "0" class is accurately predicted 50 times out of 67.
+
+This means, that for predicting the specificity class ("1"), the Logistic Regression performs better than the Decision Tree, but underperforms compared to the Neural Network. When looking at the sensitivity class ("0"), this model outperforms both the Neural Network and the Decision Tree. In other words, when only considering these three models seen up to now, the Neural Network would be the better model to find good credit candidates. Whereas, if the aim of the project is to detect bad credit candidates, then the Logistic Regression model should be preferred.
+
+Let's look further into other models.
 
 # Discriminant Analysis
 
