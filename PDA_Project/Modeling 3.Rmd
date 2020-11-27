@@ -34,7 +34,7 @@ ct.caret <- train(RESPONSE ~ .,
 
 ```
 
-  ## Best Complexity parameter 
+## Best Complexity parameter 
 ```{r, echo=FALSE}
 print(ct.caret) 
 plot(ct.caret)
@@ -143,12 +143,12 @@ confusionMatrix(predict.train(credit.log.caret, newdata = german.te),
 
 ```{r, echo=FALSE, message= FALSE}
 #LDA
-library(MASS)
-lda.fit <- lda(RESPONSE ~ ., data = GermanCredit)
-lda.fit
+# library(MASS)
+# lda.fit <- lda(RESPONSE ~ ., data = GermanCredit)
+# lda.fit
 
 
-train(RESPONSE ~ .,
+lda.fit <- caret::train(RESPONSE ~ .,
                          data=german.tr,
                          method="lda",
                          preProcess=c("center", "scale"),
@@ -156,7 +156,7 @@ train(RESPONSE ~ .,
                          repeats=10, verboseIter=FALSE, sampling = "down")
                          )
 
-# check
+summary(lda.fit)
 ```
 
 
@@ -165,47 +165,52 @@ train(RESPONSE ~ .,
 lda.pred <- predict(lda.fit, GermanCredit)
 names(lda.pred) 
 
-head(lda.pred$posterior)
-
+#head(lda.pred$posterior)
 
 ```
 
 ## Confusion Matrix
 ```{r, echo=FALSE}
-lda.class <- lda.pred$class
-kable(table(lda.class, GermanCredit$RESPONSE), caption = "Prediction table.")
-
-prev.prob.lda <- data.frame(actual = GermanCredit$RESPONSE, prob = lda.pred$posterior)
-prev.class.lda <- tibble(actual = GermanCredit$RESPONSE, class = lda.class)
-confusionMatrix(prev.class.lda$class, prev.class.lda$actual)
-
-# good accuracy mais class pas balanced
+confusionMatrix(predict.train(lda.fit, newdata = german.te),
+                german.te$RESPONSE)
 ```
 
 ```{r, echo=FALSE}
-
-library(tidyverse)
-library(ggthemes)
-prev.prob.lda$class <- lda.class
-prev.prob.lda$correct <- ifelse(prev.class.lda$actual == prev.class.lda$class, TRUE, 
-    FALSE)
-ggplot(prev.prob.lda, aes(x = class, fill = correct)) + 
-  geom_bar(position = "dodge") + 
-  scale_fill_brewer(palette = "Set1") + 
-  theme_get()
+# remove
+# library(tidyverse)
+# library(ggthemes)
+# prev.prob.lda$class <- lda.class
+# prev.prob.lda$correct <- ifelse(prev.class.lda$actual == prev.class.lda$class, TRUE, 
+#     FALSE)
+# ggplot(prev.prob.lda, aes(x = class, fill = correct)) + 
+#   geom_bar(position = "dodge") + 
+#   scale_fill_brewer(palette = "Set1") + 
+#   theme_get()
 ```
 
 # QDA
 
-```{r, echo=FALSE}
-qda.fit <- qda(RESPONSE ~ ., data = GermanCredit)
-qda.fit
+```{r, echo=FALSE, warning= FALSE}
+# qda.fit <- qda(RESPONSE ~ ., data = GermanCredit)
+# qda.fit
+# 
+# #ca me donne une erreure je comprends pas d'où ca viennnnnt
+# qda.class <- predict(qda.fit, GermanCredit$RESPONSE)$class 
+# table(qda.class, Direction.2005)
 
-#ca me donne une erreure je comprends pas d'où ca viennnnnt
-qda.class <- predict(qda.fit, GermanCredit$RESPONSE)$class 
-table(qda.class, Direction.2005)
+qda.fit <- caret::train(RESPONSE ~ .,
+                         data=german.tr,
+                         method="qda",
+                         preProcess=c("center", "scale"),
+                         trControl=trainControl(method="repeatedcv", number=10,
+                         repeats=10, verboseIter=FALSE, sampling = "down")
+                         ) 
 
-# check avec caret 
+qda.pred <- predict(qda.fit, GermanCredit)
+
+confusionMatrix(predict.train(qda.fit, newdata = german.te),
+                german.te$RESPONSE)
+
 ```
     
 # KNN
@@ -217,9 +222,38 @@ table(qda.class, Direction.2005)
 
 # Support Vector Machine 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning = FALSE}
+library(caret)
+model_svm <- caret::train(RESPONSE ~ .,
+                          data = german.tr, 
+                          method = "svmRadialCost",
+                          preProcess = "range",
+                          trace = FALSE,
+                          trControl = trainControl(method = "repeatedcv", number = 10, repeats = 10, 
+                                                  verboseIter = FALSE))
+model_svm
+
+# selecting the best tune
+model_svm$bestTune
+plot(model_svm)
 
 
+C <- c(0.25, 0.1, 0.5, 1, 10, 100)
+sigma <- c(0.0001, 0.001, 0.01, 0.1, 1)
+gr.radial<-expand.grid(C = C, sigma = sigma)
+model_svm.1<-caret::train(RESPONSE ~ .,
+                          data = german.te,
+                          method = "svmRadial",
+                          preProcess = "range",
+                          trace=FALSE,
+                          trControl = trainControl(method = "repeatedcv", number = 10, repeats = 10, 
+                                                  verboseIter = FALSE),
+                          tuneGrid=gr.radial)
+model_svm.1
+model_svm.1$bestTune
+plot(model_svm.1)
+model_svm_pred <- predict(model_svm, german.te)
+CrossTable(x = german.te$RESPONSE, y = model_svm_pred, prop.chisq = FALSE)
 ```
 
 # Ensemble methods (Random Forest)
@@ -227,6 +261,8 @@ table(qda.class, Direction.2005)
 ```{r, echo= FALSE, message = FALSE}
 library(randomForest)
 library(funModeling)
+library(lessR)
+library(gmodels)
 
 form <- formula (RESPONSE ~.)
 
@@ -244,37 +280,23 @@ CreditRF <- randomForest(formula=form,
 
 print(CreditRF)
 
-```
-
 ## Variable importance analysis
-``` {r, echo=FALSE}
-library(lessR)
+
 head(round(importance(CreditRF), 2))
 
 details(varImpPlot(CreditRF))
-```
 
 ## Diagnostic model: error rate
-
-```{r, echo = FALSE}
 round(head(CreditRF$err.rate, 15), 4)
 
 details(plot(CreditRF))
 
-```
-
-
 ## Confusion matrix
 
-```{r, echo = FALSE}
 CreditRF$confusion
 
-```
-
-
 ## Confusion matrix for the test set
-```{r, echo = FALSE}
-library(gmodels)
+
 CreditRF.pred<-predict(CreditRF, german.te, type="class")
 CreditRF.pred
 
@@ -286,34 +308,45 @@ CrossTable(x=GermanCredit$RESPONSE[-c(1:750)], y=CreditRF.pred, prop.chisq=FALSE
 
 ## RF with repeated cross-validation
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, warning=FALSE}
 library(caret)
 modelLookup(model="rf")
 
 #ca prend beaucouuuup de temps mais a la fin ca marche ahah
-system.time(
   model_rf <- caret::train(RESPONSE ~ .,
                          data=german.tr,
                          method="rf",
-                         preProcess=NULL,
+                         preProcess=c("center", "scale"),
                          trControl=trainControl(method="repeatedcv", number=10,
                          repeats=10, verboseIter=FALSE, sampling="down")
                          )
-)
 
 
 model_rf
 
+model_rf$bestTune
+
 ```
 
+## Variable importance analysis
 
+```{r, echo = FALSE}
+
+# ici on devra mettre le alg. BORUTA
+varImp(model_rf)
+head(round(importance(model_rf), 2))
+
+
+
+``` 
 ## Confusion matrix
 
 ```{r, echo = FALSE}
-creditsRF.pred.1 <- predict(model_rf, german.te)
-confusionMatrix(creditsRF.pred.1, german.te$RESPONSE)
+library(gmodels)
+model_rf_pred <- predict(model_rf, german.te)
+confusionMatrix(model_rf_pred, german.te$RESPONSE)
 
-CrossTable(x=german.te$RESPONSE, y=creditsRF.pred.1, prop.chisq=FALSE)
+CrossTable(x=german.te$RESPONSE, y=model_rf_pred, prop.chisq=FALSE)
 
 ```
 
