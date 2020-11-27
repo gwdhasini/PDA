@@ -10,6 +10,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 # Partition of Data
 
+To begin the modeling section, we start by partitioning the data set into a training set (750 observations) and testing set (250 observations), selected at random.
+
 ```{r, echo=FALSE}
 
 row.order <- sample(c(1:1000)) # first randomize the order of the rows
@@ -19,18 +21,29 @@ german.te <- GermanCredit[row.order[751:1000],]
 
 ```
 
+In order to be consistent, we decided to build all models using the caret package.
 
 # Decision Tree with Caret
 
+The first model that we investigate is the decision tree. The model is built on the training set and then the test set is used to measure the prediction capacity of the model. The data is normalised through the preProcess argument. We used the repeated cross-validation method, in order to achieve better results. Also, we balance the data thanks to "sampling = down", to ensure that the prediction capacity on both classes is balanced. Lastly, we perform a tuning of the complexity parameter (cp), to further improve the model.
+
 ```{r, echo=FALSE}
 library(caret)
-ct.caret <- train(RESPONSE ~ .,
-                         data=german.tr,
-                         method="rpart",
-                         preProcess=c("center", "scale"),
-                         trControl=trainControl(method="repeatedcv", number=10,
-                         repeats=10, verboseIter=FALSE, sampling = "down")
-                         )
+hp_ct <- data.frame(cp = seq(from = 0.03, to = 0, by = -0.003))
+ct.caret <- train(
+  RESPONSE ~ .,
+  data = german.tr,
+  method = "rpart",
+  preProcess = c("center", "scale"),
+  trControl = trainControl(
+    method = "repeatedcv",
+    number = 10,
+    repeats = 10,
+    verboseIter = FALSE,
+    sampling = "down"
+  ),
+  tuneGrid = hp_ct
+)
 
 ```
 
@@ -41,7 +54,12 @@ plot(ct.caret)
 
 ```
 
+By the information provided above, we can see that the best accuracy on the training set is of 65.9%. This is achieved by using a complexity parameter of 0.006.
+
   ## Confusion Matrix
+
+We are now going to look on the performance on the test set.
+
 ```{r, echo=FALSE}
 confusionMatrix(predict.train(ct.caret, newdata = german.te), 
                 german.te$RESPONSE)
@@ -49,7 +67,11 @@ confusionMatrix(predict.train(ct.caret, newdata = german.te),
 
 ``` 
 
+As we can see, the overall accuracy on the test set is of 62.8%. However, one can observe that even though the prediction capacity on each class is more balanced than if we had not balanced the data, the sensitivity class (1) is better predicted (70.8%) compared to the specificity class (59.6%). This is confirmed in the confusion matrix as well. To further explain, the "1" class is correctly predicted 106 times out of 127 times. Whereas, the "0" class is correctly predicted 51 times out of 123 times. This means that the model performs well in predicting good credit rating candidates. However, if the aim of the project is to uncover bad credit rating candidates based on the explanatory variables, the model will do a poorer job.
+
   ## Tree drawing
+  
+We now plot the final and best model. 
 ```{r, echo=FALSE}
 plot(ct.caret$finalModel)
 text(ct.caret$finalModel)
@@ -58,9 +80,13 @@ text(ct.caret$finalModel)
 
 # Neural Network with Caret
 
+The second model that we considered is the Neural Network. Similarly to the decision tree, we scaled and balanced the data, as well as, preformed a repeated cross-validation, in order to achieve better results. To go further, we also tuned the "size" and "decay" hyperparameters.
 
 ```{r, echo=FALSE, include = FALSE}
 set.seed(2006)
+
+hp_nn <- expand.grid(size = 2:4, decay = seq(0, 0.5, 0.05))
+
 credit.nn.caret <- train (
   form = RESPONSE ~ .,
   data = german.tr,
@@ -71,10 +97,12 @@ credit.nn.caret <- train (
     number = 10,
     repeats = 10,
     verboseIter = FALSE,
-    sampling = "down")
+    sampling = "down"),
+  tuneGrid = hp_nn
 )
 
-
+#final  value 215.167737 
+#stopped after 100 iterations
 
 ```
 
@@ -83,7 +111,7 @@ credit.nn.caret <- train (
   
 ```{r, echo=FALSE}
 print(credit.nn.caret)
-
+plot(credit.nn.caret)
 ```
   
 ## Confusion Matrix
