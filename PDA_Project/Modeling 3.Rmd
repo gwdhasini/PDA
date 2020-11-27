@@ -79,14 +79,14 @@ credit.nn.caret <- train (
 ```
 
 
-  ## Accuracy measure
+## Accuracy measure
   
 ```{r, echo=FALSE}
 print(credit.nn.caret)
 
 ```
-
-  ## Confusion Matrix
+  
+## Confusion Matrix
 ```{r, echo=FALSE}
 confusionMatrix(predict.train(credit.nn.caret, newdata = german.te), 
                 german.te$RESPONSE)
@@ -101,7 +101,8 @@ plotnet(credit.nn.caret, pos_col = "darkgreen", neg_col = "darkblue")
 
 # Logistic regression with caret
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning = FALSE}
+set.seed(1)
 credit.log.caret <-
   train(
     form = RESPONSE ~ .,
@@ -121,7 +122,7 @@ credit.log.caret <-
 ```
 
 
-  ## Accuracy measure
+## Accuracy measure
   
 ```{r, echo=FALSE}
 print(credit.log.caret)
@@ -129,7 +130,7 @@ summary(credit.log.caret)
 
 ```
 
-  ## Confusion Matrix
+## Confusion Matrix
 ```{r, echo=FALSE}
 confusionMatrix(predict.train(credit.log.caret, newdata = german.te),
                 german.te$RESPONSE)
@@ -140,12 +141,22 @@ confusionMatrix(predict.train(credit.log.caret, newdata = german.te),
 
 # Discriminant Analysis
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, message= FALSE}
 #LDA
 library(MASS)
 lda.fit <- lda(RESPONSE ~ ., data = GermanCredit)
 lda.fit
 
+
+train(RESPONSE ~ .,
+                         data=german.tr,
+                         method="lda",
+                         preProcess=c("center", "scale"),
+                         trControl=trainControl(method="repeatedcv", number=10,
+                         repeats=10, verboseIter=FALSE, sampling = "down")
+                         )
+
+# check
 ```
 
 
@@ -168,6 +179,7 @@ prev.prob.lda <- data.frame(actual = GermanCredit$RESPONSE, prob = lda.pred$post
 prev.class.lda <- tibble(actual = GermanCredit$RESPONSE, class = lda.class)
 confusionMatrix(prev.class.lda$class, prev.class.lda$actual)
 
+# good accuracy mais class pas balanced
 ```
 
 ```{r, echo=FALSE}
@@ -192,6 +204,8 @@ qda.fit
 #ca me donne une erreure je comprends pas d'où ca viennnnnt
 qda.class <- predict(qda.fit, GermanCredit$RESPONSE)$class 
 table(qda.class, Direction.2005)
+
+# check avec caret 
 ```
     
 # KNN
@@ -210,7 +224,7 @@ table(qda.class, Direction.2005)
 
 # Ensemble methods (Random Forest)
 
-```{r, echo= FALSE}
+```{r, echo= FALSE, message = FALSE}
 library(randomForest)
 library(funModeling)
 
