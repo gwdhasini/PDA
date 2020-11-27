@@ -156,7 +156,7 @@ lda.fit <- caret::train(RESPONSE ~ .,
                          repeats=10, verboseIter=FALSE, sampling = "down")
                          )
 
-summary(lda.fit)
+lda.fit
 ```
 
 
@@ -197,7 +197,7 @@ confusionMatrix(predict.train(lda.fit, newdata = german.te),
 # #ca me donne une erreure je comprends pas d'où ca viennnnnt
 # qda.class <- predict(qda.fit, GermanCredit$RESPONSE)$class 
 # table(qda.class, Direction.2005)
-
+set-seed(1)
 qda.fit <- caret::train(RESPONSE ~ .,
                          data=german.tr,
                          method="qda",
@@ -254,6 +254,12 @@ model_svm.1$bestTune
 plot(model_svm.1)
 model_svm_pred <- predict(model_svm, german.te)
 CrossTable(x = german.te$RESPONSE, y = model_svm_pred, prop.chisq = FALSE)
+
+confusionMatrix(predict.train(model_svm, newdata = german.te),
+                german.te$RESPONSE)
+
+confusionMatrix(predict.train(model_svm.1, newdata = german.te),
+                german.te$RESPONSE)
 ```
 
 # Ensemble methods (Random Forest)
@@ -325,6 +331,12 @@ modelLookup(model="rf")
 model_rf
 
 model_rf$bestTune
+
+# mtry : 
+
+# confusion matrix
+confusionMatrix(predict.train(model_rf, newdata = german.te),
+                german.te$RESPONSE)
 
 ```
 
