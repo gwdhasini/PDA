@@ -5,9 +5,23 @@ date: "10/30/2020"
 output: html_document
 ---
 
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+# Boruta Algorithm
+
+```{r}
+library(Boruta)
+set.seed(1)
+boruta.train <- Boruta(RESPONSE ~., data =GermanCredit, doTrace = 2)
+final.boruta <- TentativeRoughFix(boruta.train)
+print(final.boruta)
+
+
+# comment on voit les variables manquantes?
+```
+
 # Partition of Data
 
 To begin the modeling section, we start by partitioning the data set into a training set (750 observations) and testing set (250 observations), selected at random.
