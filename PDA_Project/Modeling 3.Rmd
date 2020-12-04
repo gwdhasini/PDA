@@ -15,12 +15,77 @@ knitr::opts_chunk$set(echo = TRUE)
 library(Boruta)
 set.seed(1)
 boruta.train <- Boruta(RESPONSE ~., data =GermanCredit, doTrace = 2)
+print(boruta.train)
+
+```
+## Plotting the most important variables
+
+```{r}
+plot(boruta.train, xlab = "", xaxt = "n")
+lz<-lapply(1:ncol(boruta.train$ImpHistory),function(i)
+boruta.train$ImpHistory[is.finite(boruta.train$ImpHistory[,i]),i])
+names(lz) <- colnames(boruta.train$ImpHistory)
+Labels <- sort(sapply(lz,median))
+axis(side = 1,las=2,labels = names(Labels),
+at = 1:ncol(boruta.train$ImpHistory), cex.axis = 0.7)
+title(main="Variable Importance According to the Boruta Algorithm")
+
+
+```
+## Fixing the attributes for which the algorthm is not sure
+
+```{r}
+set.seed(2)
 final.boruta <- TentativeRoughFix(boruta.train)
 print(final.boruta)
 
-
-# comment on voit les variables manquantes?
 ```
+
+## Ploting the variable importance after the fix
+```{r}
+plot(final.boruta, xlab = "", xaxt = "n")
+lz<-lapply(1:ncol(final.boruta$ImpHistory),function(i)
+final.boruta$ImpHistory[is.finite(final.boruta$ImpHistory[,i]),i])
+names(lz) <- colnames(final.boruta$ImpHistory)
+Labels <- sort(sapply(lz,median))
+axis(side = 1,las=2,labels = names(Labels),
+at = 1:ncol(final.boruta$ImpHistory), cex.axis = 0.7)
+title(main="Variable Importance After the Fix")
+
+
+```
+
+
+## Focus on Important Variables
+
+```{r}
+GermanCredit <-
+  GermanCredit %>% select(
+    "RESPONSE",
+    "CHK_ACCT",
+    "DURATION",
+    "HISTORY",
+    "AMOUNT",
+    "SAV_ACCT",
+    "GUARANTOR",
+    "OTHER_INSTALL",
+    "EMPLOYMENT",
+    "AGE",
+    "USED_CAR",
+    "REAL_ESTATE",
+    "PROP_UNKN_NONE",
+    "NEW_CAR",
+    "OWN_RES",
+    "USED_CAR",
+    "INSTALL_RATE",
+    "JOB",
+    "NUM_CREDITS",
+    "RENT"
+  )
+
+
+```
+
 
 # Partition of Data
 
