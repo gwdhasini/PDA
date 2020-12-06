@@ -337,51 +337,81 @@ confusionMatrix(predict.train(qda.fit, newdata = german.te),
 When the mdoel is fitted on the test set, the Accuracy is of 71.2%, which is the highest level achieved so far. However when looking at the Sensitivity, one can remark that the it has a low value (60.98%). The model is able has predicted 50 bad credits out of 82, making him the worst in terms of prediction capability of the class "0". On the other hand, the Specificity is of 76.19%, the highest value achieved. 
 Hence, we can say that the model is very good at predicting the good credits ("1"), but very bad a predicting the bad ones. Even if the accuracy is high, it is preferable to use a model that is able to well predict both classes. 
 
-# Support Vector Machine 
+# Support Vector Machine I
+
+Next model is the support vector machine. We will first use the Radial, then the poly model.
 
 ```{r, echo=FALSE, warning = FALSE}
-
-model_svm <- caret::train(RESPONSE ~ .,
-                          data = german.tr, 
-                          method = "svmRadialCost",
-                          preProcess = "range",
-                          trace = FALSE,
-                          trControl = trainControl(method = "repeatedcv", number = 10, repeats = 10, 
-                                                  verboseIter = FALSE))
-model_svm
-
-# selecting the best tune
-model_svm$bestTune
-plot(model_svm)
-```
-
-
-```{r, echo=FALSE, warning = FALSE}
+library(doParallel) # use the parallel backend
+cl<-makeCluster(detectCores()) # detect and create a cluster
+registerDoParallel(cl)
 
 C <- c(0.25, 0.1, 0.5, 1, 10, 100)
 sigma <- c(0.0001, 0.001, 0.01, 0.1, 1)
 gr.radial<-expand.grid(C = C, sigma = sigma)
-model_svm.1<-caret::train(RESPONSE ~ .,
+
+set.seed(123)
+system.time(model_svm<-caret::train(RESPONSE ~ .,
                           data = german.te,
                           method = "svmRadial",
                           preProcess = "range",
                           trace=FALSE,
                           trControl = trainControl(method = "repeatedcv", number = 10, repeats = 10, 
                                                   verboseIter = FALSE),
-                          tuneGrid=gr.radial)
-model_svm.1
-model_svm.1$bestTune
+                          tuneGrid=gr.radial))
+model_svm
+model_svm$bestTune
 plot(model_svm.1)
+
+# COULD WE MAKE A PLOT HERE? question
+# plot(model_svm, german.tr, RESPONSE ~ as.line(USED_CAR), 
+#      slice = list(DURATION = 3, CHK_ACCT = 6))
 ```
 
-## Confusiona matrix
+As we can see from the model summary and later confirmed using the best Tune and the plot, the model is well fitted to the data when sigma = 0.001 and the cost C = 100. As we can see, the cost is very large. Having a large cost mean that the margins are going to be very small, and the border is not smooth. The risk of having such a large Cost is that the model is over-fitted. If that is the case, we wouldn't be able to well predict the outcome variable on the test set. We can look at the confusion matrix and see what happens.
+
+## Confusion matrix
 ```{r, echo=FALSE, warning = FALSE}
+
 confusionMatrix(predict.train(model_svm, newdata = german.te),
                 german.te$RESPONSE)
+```
 
-confusionMatrix(predict.train(model_svm.1, newdata = german.te),
+The model's Accuracy is of 82%, which is the highest seen so far. However, when looking at the Sensitivity and the Specificity, we realize that it is able to predict almost perfectly when RESPONSE is 1, but pretty badly when the outcome is 0. Indeed, the Specificity is of 94% which is a really good value, but the Sensitivity is of only 60% showing a poor ability in prediciting the bad creditors. 
+In the light of what we have seen, we can confirm that the model is not overfitted. If that was the case it wouldn't be able to make good predictions and the Accuracy would be definetly lower. 
+
+# Support Vector Machine II
+
+After having fitted a first support vector machine model, we are now going to fit another one using "svmPoly" and see if the results improve. 
+```{r, echo = FALSE, warning=FALSE}
+C<-c(0.1, 1, 10, 100)
+degree<-c(1, 2, 3)
+scale<-1
+
+gr.poly<-expand.grid(C=C, degree=degree, scale=scale)
+ctrl<-trainControl(method="cv", number=3)
+
+set.seed(123)
+system.time(model_svm_poly<-train(RESPONSE~., data=german.tr, method="svmPoly", trControl=ctrl, 
+                            tuneGrid=gr.poly))
+
+model_svm_poly
+
+model_svm_poly$bestTune
+plot(model_svm_poly)
+```
+This support vector machine model doesn't only tune the Cost parameter, but also the scale and the degree. The output of the model's summary, as well as the bestTune function and the graph show that the model gives the best results when degree = 1, scale = 1, and C = 100. We are now going to analyse the confusion matrix and see if the model's prediction capacity are good.
+
+
+## Confusion matrix
+```{r, echo=FALSE, warning = FALSE}
+
+confusionMatrix(predict.train(model_svm_poly, newdata = german.te),
                 german.te$RESPONSE)
 ```
+Like in the previous support vector machine model, this one is better at predicting the good creditors ("1") compared to the bad ones. Indeed, even if the Accuracy is at 70% which is a good value, the Sensitivity is extremely low (only 39%). In fact the confusion matrix shows that the model is able to predict only 32 times out of 82 the bad creditors. 
+Hence, we would prefer not using this model as it wouldn't be bale to make the correct predictions. 
+
 
 # Ensemble methods (Random Forest)
 
@@ -399,6 +429,8 @@ model_rf <- caret::train(RESPONSE ~ .,
                          repeats=10, verboseIter=FALSE, sampling="down")
                          )
 model_rf
+# question --> mtry = 34 but we have less than 34 variables: does it make sense?
+
 ```
 The output shows that the best Accuracy can be reached when mtry = 34. Indeed, the model has been doing different simulation with different mtry (Number of variables randomly sampled as candidates at each split), and ended by fitting the model to the training set using mtry = 34. Indeed, when we run the best tune we obtain the following:
 
