@@ -1,0 +1,13 @@
+---
+title: "Report"
+author: "Maria Pia El Asmar & Hasini Gunawardena"
+date: "18/12/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r child = c('EDA.Rmd', 'Modeling.Rmd')}
+```

@@ -1,7 +1,7 @@
 ---
 title: "PDA_EDA"
 author: "Maria Pia El Asmar & Hasini Gunawardena"
-date: "10/30/2020"
+date: "18/12/2020"
 output: html_document
 ---
 
@@ -13,6 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r setup, echo = FALSE, warning = FALSE, message = FALSE}
 library(tidyverse)
 library(DT)
+library(ggplot2)
 library(Hmisc)  
 library(tidyquant)
 library(ggthemes)
@@ -24,11 +25,12 @@ library(corrr)
 library(corrplot)
 library(ggcorrplot)
 library(kableExtra)
-#library(DataExplorer)
+library(DataExplorer)
 library(inspectdf)
 library(explore)
 library(dplyr)
 library(caret)
+
 ```
 
 
@@ -59,6 +61,8 @@ options(
 
 
 # Introduction
+
+As part of the course "Projects in Data Analytics for Decision Making", we are given the task of analysing the "German Credit" dataset. The aim of the project is to obtain a model that may be used to determine if new applicants present a good or bad credit risk.
 
 ```{r, echo=FALSE}
 GermanCredit <- read.csv(
@@ -126,7 +130,6 @@ for (i in c(2,10,22)){
 
 
 ```{r, echo=FALSE}
-library(DT)
 str(GermanCredit)
 
 datatable(head(GermanCredit), class = "cell-border stripe") #Ca apparait pas haha 
@@ -138,7 +141,6 @@ Now that the variables are in the correct form, we can move on with our analysis
 We start by looking at the structure of the dataset.
 
 ```{r, echo=FALSE}
-library(DataExplorer)
 plot_intro(GermanCredit)
 
 types<-inspect_types(GermanCredit)
@@ -150,23 +152,17 @@ From the first plot, we note that there are no missing observations. Moreover, a
 We are now going to dive deeper into the variables' analysis. 
 
 ```{r, echo=FALSE}
-library(psych)
-library(Hmisc)
 summary(GermanCredit)
-
 ```
 
 The summary gives us a first overview of the variables' details. Interestingly, some categorical variables present an unequal distribution of values. For instance, we note that the variable "CO.APPLICANT" has 959 times "0" and only 41 times "1". A similar comment can be made for other categorical variables like "MALE_MAR_or_WID", "FOREIGN", "MALE_DIV", "EDUCATION". 
 
 
-Let us now analyse the numerical variables. For those, we can look at the min and the max, which gives us a range. For instance, we see that in this bank the duration of the loan goes from 4 to 72 months. The larger the range, the higher the chance of having outliers. For example, the "AMOUNT" variable has a very big range: from 250 to 18'424. Moreover, we note that for all the numerical variables the median is lower than the mean. For instance, "AMOUNT" has a median of 2320 and a mean of 3271, which will mean that the histogram will present a long right tail. 
+Let us now analyse the numerical variables. For those, we can look at the min and the max, which gives us a range. For instance, we see that in this bank the duration of the loan goes from 4 to 72 months. The larger the range, the higher the chance of having outliers. For example, the "AMOUNT" variable has a very big range: from 250 to 18'424. Moreover, we note that for all the numerical variables the median is lower than the mean. For instance, "AMOUNT" has a median of 2320 and a mean of 3271, which will mean that the histogram will present a long right tail (positive skewness). 
 
 ```{r, echo=FALSE}
-library(inspectdf)
-
 cat.var<-inspect_cat(GermanCredit) 
 show_plot(cat.var) 
-
 ```
 
 This plot allows us to have a better visualization of how the factor variables are distributed. We confirm that for most of them, the number of instances in each level of the variables are unbalanced. The only variable that seems to have a similar distribution of 1 and 0 is MALE_SINGLE.
@@ -175,14 +171,11 @@ This plot allows us to have a better visualization of how the factor variables a
 ## Histogram & Density
 
 ```{r, echo=FALSE}
-library(ggplot2)
-#new
 num.var<-inspect_num(GermanCredit)
 show_plot(num.var, col_palette=3)
 
 plot_density(GermanCredit[,-31],
              ggtheme = theme_bw())
-
 
 ```
 
@@ -217,7 +210,6 @@ The boxplots allow also to compare the median of the variables according the RES
 
 ## Good vs Bad credits
 ```{r, echo=FALSE}
-
 #CHECK QUE TOUTES LES VARIABLES ON ETE CONSIDERE
 GermanCredit %>% 
   select(TELEPHONE, RADIO.TV, RESPONSE) %>% 
@@ -246,14 +238,13 @@ GermanCredit %>%
 ```
 Similarly to what we saw in the boxplot for the integer variables, we now observe the distribution of all the catgorical ones according to the outcome variable RESPONSE.
 
-We note that there are no discrimination for any categorical variable when considering the RESPONSE feature, meaning that we are not going to be able to define RESPONSE only by looking at those variables indivdually.
+We note that there are no discrimination for any categorical variable when considering the RESPONSE feature, meaning that we are not going to be able to define RESPONSE only by looking at those variables individually.
 
 After having deeply analysed the dataset, we are now going to look at the correlation between the variables and then proceed with the model analysis.
 
 ## Correlations
 
 ```{r, echo=FALSE, fig.width= 8, fig.height= 7}
-library(DataExplorer)
 plot_correlation(GermanCredit, type= 'c', cor_args = list( 'use' = 'complete.obs')) #Library DataExplorer
 ```
 
@@ -261,6 +252,8 @@ plot_correlation(GermanCredit, type= 'c', cor_args = list( 'use' = 'complete.obs
 From the correlation matrix we see that only "DURATION" and "AMOUNT" are correlated. Moreover, they are positively correlated. When working on the models we should be aware of this correlation and eventually compute the VIF coefficient in order to be sure that there is no multicollinearity problems.
 
 It seems like there is no correlation between the other variables, meaning that they are independent, which is actually positive since it means that for these variables we will not have problems of multicollinearity. 
+
+We are now going to proceed with the modeling section.
 
 
 

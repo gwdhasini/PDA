@@ -1,7 +1,7 @@
 ---
 title: "Modeling"
 author: "Maria Pia El Asmar & Hasini Gunawardena"
-date: "10/30/2020"
+date: "18/12/2020"
 output: html_document
 ---
 
@@ -9,9 +9,10 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
 # Boruta Algorithm
 
-Variable selection is an important part of the model building process. To decide on which variables to use, we employ the Boruta Algorithm. In contrary to other traditional feature selection models, that only rely on a small subset of features for the selection, this algorithm captures all features relevant to the outcome variable. (https://www.analyticsvidhya.com/blog/2016/03/select-important-variables-boruta-package/)
+Variable selection is an important part of the model building process. To decide on which variables to use, we employ the Boruta Algorithm. In contrary to other traditional feature selection models, that only rely on a small subset of features for the selection, this algorithm captures all features relevant to the outcome variable. (Source: https://www.analyticsvidhya.com/blog/2016/03/select-important-variables-boruta-package/)
 
 ```{r, message=FALSE, warning=FALSE}
 library(Boruta)
@@ -146,7 +147,7 @@ plot(ct.caret)
 
 ```
 
-By the information provided above, we can see that the best accuracy on the training set is of 65.6%. This is achieved by using a complexity parameter of 0.015.
+By the information provided above, we can see that the best Accuracy on the training set is of 65.6%. This is achieved by using a complexity parameter of 0.015.
 
 ## Confusion Matrix
 
@@ -159,7 +160,7 @@ confusionMatrix(predict.train(ct.caret, newdata = german.te),
 
 ``` 
 
-As we can see, the overall accuracy on the test set is of 60.4%. However, one can observe that even though the prediction capacity on each class is more balanced than if we had not balanced the data, the sensitivity class is better predicted (65.9%) compared to the specificity class (57.7%). This is confirmed in the confusion matrix as well. To further explain, the "1" class is correctly predicted 97 times out of 168 times. Whereas, the "0" class is correctly predicted 54 times out of 82 times. This means that the model performs well in predicting bad credit rating candidates. However, if the aim of the project is to uncover good credit rating candidates based on the explanatory variables, the model will do a poorer job.
+As we can see, the overall Accuracy on the test set is of 60.4%. However, one can observe that even though the prediction capacity on each class is more balanced than if we had not balanced the data, the Sensitivity class is better predicted (65.9%) compared to the Specificity class (57.7%). This is confirmed in the Confusion Matrix as well. To further explain, the "1" class is correctly predicted 97 times out of 168 times. Whereas, the "0" class is correctly predicted 54 times out of 82 times. This means that the model performs well in predicting bad credit rating candidates. However, if the aim of the project is to uncover good credit rating candidates based on the explanatory variables, the model will do a poorer job.
 
 ## Tree drawing
   
@@ -167,12 +168,11 @@ We now plot the final and best model.
 ```{r, echo=FALSE}
 plot(ct.caret$finalModel)
 text(ct.caret$finalModel)
-#PIA: on ne voit pas tres bien le graph
 ```
 
 # Neural Network
 
-The second model that we considered is the Neural Network. Similarly to the decision tree, we scaled and balanced the data, as well as, preformed a repeated cross-validation, in order to achieve better results. To go further, we also tuned the "size" and "decay" hyperparameters.
+The second model that we considered is the Neural Network. Similarly to the Decision Tree, we scaled and balanced the data, as well as, preformed a repeated cross-validation, in order to achieve better results. To go further, we also tuned the "size" and "decay" hyperparameters.
 
 ```{r, echo=FALSE, include = FALSE}
 set.seed(2006)
@@ -206,16 +206,16 @@ credit.nn.caret$bestTune
 print(credit.nn.caret)
 plot(credit.nn.caret)
 ```
-As we can see, the highest accuracy (69.3%) on the training set can be obtained by setting size = 4 and decay = 0.5.
+As we can see, the highest Accuracy (69.3%) on the training set can be obtained by setting size = 4 and decay = 0.5.
 
 ## Confusion Matrix
 ```{r, echo=FALSE}
 confusionMatrix(predict.train(credit.nn.caret, newdata = german.te), 
                 german.te$RESPONSE)
 ``` 
-The results on the test set are slightly better than for the Decision Tree. Overall we obtain an accuracy of 65.6%. The prediction of each class is balanced even though the specificity class (66.7%) is better predicted than the sensitivity class (63.4%), unlike for the Decision Tree model. 
+The results on the test set are slightly better than for the Decision Tree. Overall we obtain an Accuracy of 65.6%. The prediction of each class is balanced even though the Specificity class (66.7%) is better predicted than the Sensitivity class (63.4%), unlike for the Decision Tree model. 
 
-The results are confirmed in the confusion matrix where the "1" class is correctly predicted 112 times out of 168 times. Whereas, the "0" class is correctly predicted 52 times out of 82 times. In this way, the Neural Network outperforms the Decision Tree model in predicting the specificity class (1). However, the results are almost equivalent for the sensitivity class (0).
+The results are confirmed in the Confusion Matrix where the "1" class is correctly predicted 112 times out of 168 times. Whereas, the "0" class is correctly predicted 52 times out of 82 times. In this way, the Neural Network outperforms the Decision Tree model in predicting the Specificity class (1). However, the results are almost equivalent for the Sensitivity class (0).
 
 ## Neural Network Plotting
   
@@ -258,9 +258,9 @@ summary(credit.log.caret)
 
 
 ```
-The results of the training show that not all variables significantly impact the RESPONSE variable. For instance, according to the model, variables such as JOB or NEW_cAR do not impact the RESPONSE variable significantly. Other variables may impact the explained variable at different thresholds. For example, CHK_ACCT3 has a significant influence at a threshold of 0.1%, whereas EMPLOYMENT4, INSTALL_RATE4 and HISTORY4 have impacts at thresholds of, respectively, 1%, 5% and 10%.
+The results of the training show that not all variables significantly impact the RESPONSE variable. For instance, according to the model, variables such as JOB or NEW_CAR do not impact the RESPONSE variable significantly. Other variables may impact the explained variable at different thresholds. For example, CHK_ACCT3 has a significant influence at a threshold of 0.1%, whereas EMPLOYMENT4, INSTALL_RATE4 and HISTORY4 have impacts at thresholds of, respectively, 1%, 5% and 10%.
 
-Overall, the model presents a good accuracy (70.9%) on the training set. However, to truly evaluate its prediction capacity we would need to consider the accuracy on the test set.
+Overall, the model presents a good Accuracy (70.9%) on the training set. However, to truly evaluate its prediction capacity we would need to consider the Accuracy on the test set.
 
 ## Confusion Matrix
 ```{r, echo=FALSE}
@@ -269,22 +269,22 @@ confusionMatrix(predict.train(credit.log.caret, newdata = german.te),
 
 
 ``` 
-The analysis of the predictions on the test set reveals that it is as well a good model since the overall accuracy is of 68.8%. This means, that overall the Logistic Regression outperforms both the Decision Tree and the Neural Network.
+The analysis of the predictions on the test set reveals that it is as well a good model since the overall Accuracy is of 68.8%. This means, that overall the Logistic Regression outperforms both the Decision Tree and the Neural Network.
 
-When looking in more details, we can see that both classes are more or less well predicted. Similarly to the Decision Tree model, the sensitivity class (73.2%) is better predicted than the specificity class (66.7%). The results on the confusion matrix confirm this. To further explain, the "1" class is correctly predicted 112 times out of 168. Whereas, the "0" class is accurately predicted 60 times out of 82.
+When looking in more details, we can see that both classes are more or less well predicted. Similarly to the Decision Tree model, the Sensitivity class (73.2%) is better predicted than the Specificity class (66.7%). The results on the Confusion Matrix confirm this. To further explain, the "1" class is correctly predicted 112 times out of 168. Whereas, the "0" class is accurately predicted 60 times out of 82.
 
-This means, that for predicting the specificity class ("1"), the Logistic Regression performs better than the Decision Tree, but equals the performance of the Neural Network. When looking at the sensitivity class ("0"), this model outperforms both the Neural Network and the Decision Tree. In other words, when only considering these three models seen up to now, the Neural Network and the Logistic Regression would be the better models to find good credit candidates. On the other hand, if the aim of the project is to detect bad credit candidates, then the Logistic Regression model should be preferred. Overall, this confirms that the Logistic Regression does a better job than both the Neural Network and the Decision Tree.
+This means, that for predicting the Specificity class ("1"), the Logistic Regression performs better than the Decision Tree, but equals the performance of the Neural Network. When looking at the Sensitivity class ("0"), this model outperforms both the Neural Network and the Decision Tree. In other words, when only considering these three models seen up to now, the Neural Network and the Logistic Regression would be the better models to find good credit candidates. On the other hand, if the aim of the project is to detect bad credit candidates, then the Logistic Regression model should be preferred. Overall, this confirms that the Logistic Regression does a better job than both the Neural Network and the Decision Tree.
 
 Let's look further into other models.
 
 # Discriminant Analysis
 
-The fourth model considered is the Discriminant Analysis. First, we are going to use a linear discriminant analysis, then a quadratic discriminant analysis.
+The fourth model considered is the Discriminant Analysis. First, we are going to use a Linear Discriminant Analysis (LDA), then a Quadratic Discriminant Analysis (QDA).
 
 ## LDA
 
-```{r, echo=FALSE, message= FALSE}
-
+```{r, echo=FALSE, message= FALSE, warning=FALSE}
+set.seed(4567)
 lda.fit <- caret::train(RESPONSE ~ .,
                          data=german.tr,
                          method="lda",
@@ -304,12 +304,14 @@ confusionMatrix(predict.train(lda.fit, newdata = german.te),
                 german.te$RESPONSE)
 ```
 
-One can observe that the Accuracy is of 70.4%. So far, this is the best model. 
+One can observe that the Accuracy is of 68.4%. So far, this is a good model. 
 
-Looking into more details, we note that the Sensitivity and the Specificity are respectively of 71.95% and 69.64%. The model was able to predict 59 times out of 82 a bad credit, and 117 times out of 168 a good credit. Comparing with the other models, the LDA is the one that best predict the class ("1"), meaning the good credits. It also performs better at the prediction of class ("0") compared to the other models, except for the logitic regression.
+Looking into more details, we note that the Sensitivity and the Specificity are respectively of 73.2% and 66.1%. The model was able to predict 60 times out of 82 a bad credit, and 111 times out of 168 a good credit. Comparing with the other models, the LDA has similar prediction capacity as the Logistic Regression for the class ("1"), meaning the good credits, as well as, for the prediction of class ("0").
 
 ## QDA
-We are now going to create a model using a quadritic discriminant analysis.
+
+We are now going to create a model using a Quadritic Discriminant Analysis.
+
 ```{r, echo=FALSE, warning= FALSE}
 
 set.seed(1)
@@ -324,7 +326,8 @@ qda.fit <- caret::train(RESPONSE ~ .,
 
 qda.fit
 ```
-When training the model, the Accuracy is at 68% which is lower compared to the linear discriminant analysis model. We are still going to see how the model performs when fitted on the test dataset.
+
+When training the model, the Accuracy is at 68% which is lower compared to the Linear Discriminant Analysis Model. We are still going to see how the model performs when fitted on the test dataset.
 
 ### Confusion Matrix
 ```{r}
@@ -334,12 +337,14 @@ confusionMatrix(predict.train(qda.fit, newdata = german.te),
                 german.te$RESPONSE)
 
 ```
-When the mdoel is fitted on the test set, the Accuracy is of 71.2%, which is the highest level achieved so far. However when looking at the Sensitivity, one can remark that the it has a low value (60.98%). The model is able has predicted 50 bad credits out of 82, making him the worst in terms of prediction capability of the class "0". On the other hand, the Specificity is of 76.19%, the highest value achieved. 
-Hence, we can say that the model is very good at predicting the good credits ("1"), but very bad a predicting the bad ones. Even if the accuracy is high, it is preferable to use a model that is able to well predict both classes. 
+
+When the model is fitted on the test set, the Accuracy is of 71.2%, which is the highest level achieved so far. However when looking at the Sensitivity, one can remark that the it has a low value (60.98%). The model is able has predicted 50 bad credits out of 82, making him the worst in terms of prediction capability of the class "0". On the other hand, the Specificity is of 76.19%, the highest value achieved for the "1" class. 
+
+Hence, we can say that the model is very good at predicting the good credits ("1"), but very bad a predicting the bad ones. Even if the Accuracy is high, it is preferable to use a model that is able to better predict both classes. 
 
 # Support Vector Machine I
 
-Next model is the support vector machine. We will first use the Radial, then the poly model.
+The next model is the Support Vector Machine. We will first use the Radial, then the Poly model.
 
 ```{r, echo=FALSE, warning = FALSE}
 library(doParallel) # use the parallel backend
@@ -357,11 +362,11 @@ system.time(model_svm<-caret::train(RESPONSE ~ .,
                           preProcess = "range",
                           trace=FALSE,
                           trControl = trainControl(method = "repeatedcv", number = 10, repeats = 10, 
-                                                  verboseIter = FALSE),
+                                                  verboseIter = FALSE, sampling = "down"),
                           tuneGrid=gr.radial))
 model_svm
 model_svm$bestTune
-plot(model_svm.1)
+plot(model_svm)
 
 german.tr$CHK_ACCT
 
@@ -370,7 +375,7 @@ german.tr$CHK_ACCT
 #       slice = list(DURATION = 9, CHK_ACCT = 3))
 ```
 
-As we can see from the model summary and later confirmed using the best Tune and the plot, the model is well fitted to the data when sigma = 0.001 and the cost C = 100. As we can see, the cost is very large. Having a large cost mean that the margins are going to be very small, and the border is not smooth. The risk of having such a large Cost is that the model is over-fitted. If that is the case, we wouldn't be able to well predict the outcome variable on the test set. We can look at the confusion matrix and see what happens.
+As we can see from the model summary and later confirmed using the best Tune and the plot, the model is well fitted to the data when Sigma = 0.1 and the Cost C = 1. As we can see, the Cost is very small. Having a small Cost means that the margins are going to be very large. The risk of having such a small Cost is that the model is under-fitted. If that is the case, we would not be able to well predict the outcome variable on the test set. We can look at the Confusion Matrix and see what happens.
 
 ## Confusion matrix
 ```{r, echo=FALSE, warning = FALSE}
@@ -379,19 +384,21 @@ confusionMatrix(predict.train(model_svm, newdata = german.te),
                 german.te$RESPONSE)
 ```
 
-The model's Accuracy is of 82%, which is the highest seen so far. However, when looking at the Sensitivity and the Specificity, we realize that it is able to predict almost perfectly when RESPONSE is 1, but pretty badly when the outcome is 0. Indeed, the Specificity is of 94% which is a really good value, but the Sensitivity is of only 60% showing a poor ability in prediciting the bad creditors. 
-In the light of what we have seen, we can confirm that the model is not overfitted. If that was the case it wouldn't be able to make good predictions and the Accuracy would be definetly lower. 
+The model's Accuracy is of 90.4%, which is the highest seen so far. However, when looking at the Sensitivity and the Specificity, we realise that it is able to predict almost perfectly when RESPONSE is 0, and quite well when the outcome is 1. Indeed, the Specificity is of 85% which is a good value, but the Sensitivity is of 100%, which means that the model can perfectly predict bad creditors.
+
+In the light of what we have seen, we can confirm that the model is not under-fitted. If that was the case it would not be able to make good predictions and the Accuracy would be definetly lower. 
 
 # Support Vector Machine II
 
-After having fitted a first support vector machine model, we are now going to fit another one using "svmPoly" and see if the results improve. 
+After having fitted a first Support Vector Machine model, we are now going to fit another one using "svmPoly" and see if the results improve. 
+
 ```{r, echo = FALSE, warning=FALSE}
 C<-c(0.1, 1, 10, 100)
 degree<-c(1, 2, 3)
 scale<-1
 
 gr.poly<-expand.grid(C=C, degree=degree, scale=scale)
-ctrl<-trainControl(method="cv", number=3)
+ctrl<-trainControl(method="cv", number=3, sampling = "down")
 
 set.seed(123)
 system.time(model_svm_poly<-train(RESPONSE~., data=german.tr, method="svmPoly", trControl=ctrl, 
@@ -402,7 +409,8 @@ model_svm_poly
 model_svm_poly$bestTune
 plot(model_svm_poly)
 ```
-This support vector machine model doesn't only tune the Cost parameter, but also the scale and the degree. The output of the model's summary, as well as the bestTune function and the graph show that the model gives the best results when degree = 1, scale = 1, and C = 100. We are now going to analyse the confusion matrix and see if the model's prediction capacity are good.
+
+This Support Vector Machine model does not only tune the Cost parameter, but also the Scale and the Degree. The output of the model's summary, as well as the bestTune function and the graph show that the model gives the best results when Degree = 1, Scale = 1, and C = 0.1. We are now going to analyse the Confusion Matrix and see if the model's prediction capacity are good.
 
 
 ## Confusion matrix
@@ -411,8 +419,10 @@ This support vector machine model doesn't only tune the Cost parameter, but also
 confusionMatrix(predict.train(model_svm_poly, newdata = german.te),
                 german.te$RESPONSE)
 ```
-Like in the previous support vector machine model, this one is better at predicting the good creditors ("1") compared to the bad ones. Indeed, even if the Accuracy is at 70% which is a good value, the Sensitivity is extremely low (only 39%). In fact the confusion matrix shows that the model is able to predict only 32 times out of 82 the bad creditors. 
-Hence, we would prefer not using this model as it wouldn't be bale to make the correct predictions. 
+
+Unlike in the previous Support Vector Machine model, this model has a much lower Accuracy (66.8%). However, we can highlight that, similarly to the previous model, this one is slightly better at predicting the bad creditors ("0") compared to the good ones. Indeed, the model is able to predict correctly bad creditors 56 times out of 82 and good creditors 111 times out of 168.
+
+Hence, we would prefer not using this model since other models are much more performant. 
 
 
 # Ensemble methods (Random Forest)
@@ -420,7 +430,7 @@ Hence, we would prefer not using this model as it wouldn't be bale to make the c
 The last model we are going to analyse is the Random Forest. 
 
 ```{r, echo = FALSE, warning=FALSE}
-
+set.seed(1994)
 modelLookup(model="rf")
 
 model_rf <- caret::train(RESPONSE ~ .,
@@ -433,7 +443,8 @@ model_rf <- caret::train(RESPONSE ~ .,
 model_rf
 
 ```
-The output shows that the best Accuracy can be reached when mtry = 34. Indeed, the model has been doing different simulation with different mtry (Number of variables randomly sampled as candidates at each split), and ended by fitting the model to the training set using mtry = 34. Indeed, when we run the best tune we obtain the following:
+
+The output shows that the best Accuracy can be reached when mtry = 18. Indeed, the model has been doing different simulation with different mtry (Number of variables randomly sampled as candidates at each split), and ended by fitting the model to the training set using mtry = 18. Indeed, when we run the best tune we obtain the following:
 
 
 ```{r}
@@ -448,10 +459,18 @@ We are now going to look at how the model behaves when predicting the output fro
 confusionMatrix(predict.train(model_rf, newdata = german.te),
                 german.te$RESPONSE)
 ```
-The model's Accuracy is of 70%.
+The model's Accuracy is of 69.6%.
 
-When looking at the Sensitivity and the Specificity, one can note that the model is better at predicting the bad credits ("0"). Indeed, the Sensitivity is of 75.61% while the Specificity of 67.26%. So when we fitted as random forest, we remark that 113 times out of 168 the model is able to predict good credits and 62 times out of 82, a bad one. Overall, the model is satisfying as it is able to predicted both classes pretty well. 
+When looking at the Sensitivity and the Specificity, one can note that the model is better at predicting the bad credits ("0"). Indeed, the Sensitivity is of 75.6% while the Specificity of 66.7%. So when we fitted as random forest, we remark that 112 times out of 168 the model is able to predict good credits and 62 times out of 82, a bad one. Overall, the model is satisfying as it is able to predicted both classes pretty well. 
 
 Generally, to have even better results we could make a variable importance analysis. However, having used the Bortuta Algorithm at the beginning of our analysis, this step is no longer necessary. 
 
 # Conclusion
+
+To put in a nutshell, we have observed that overall most of the models are predicting quite well both classes. When considering the top 3 in terms of overall Accuracy, the ones that stand out are the Radial SVM model (90.4%), followed by the QDA model (71.2%) and Random Forest model (69.6%). 
+
+However, depending on the aim of the project, the choice of model may differ. To further explain, if the goal is to predict good credit candidates, one should consider looking at the models having the highest Specificity rates, that are, in this case, the same as for the overall Accuracy: the Radial SVM (85.7%), followed by the QDA model (76.19%) and the Random Forest model (66.7%). 
+
+On the other hand, if the aim of the project is to detect and predict bad creditors, then the models considered should be the ones having the highest Sensitivity rates: the Radial SVM model (100%), followed by the Random Forest model (75.61%) and the Logistic Regression or LDA models (both at 73.2%).
+
+With this in mind, we could state that we do have indeed a clear winner and that is the Radial SVM model, since it has the highest Accuracy, Specificity and Sensitivity rates.
