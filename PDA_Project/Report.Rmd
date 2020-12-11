@@ -9,5 +9,56 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+
+```{r , echo = FALSE, warning = FALSE, message = FALSE}
+library(tidyverse)
+library(DT)
+library(ggplot2)
+library(Hmisc)  
+library(tidyquant)
+library(ggthemes)
+library(RColorBrewer)
+library(corrplot)
+library(psych)
+library(GGally)
+library(corrr)
+library(corrplot)
+library(ggcorrplot)
+library(kableExtra)
+library(DataExplorer)
+library(inspectdf)
+library(explore)
+library(dplyr)
+library(caret)
+
+```
+
+
+```{r , echo = FALSE, warning = FALSE, message = FALSE}
+knitr::opts_chunk$set(
+  comment = "#>",
+  collapse = TRUE,
+  cache = TRUE,
+  fig.retina = 0.8, # figures are either vectors or 300 dpi diagrams
+  dpi = 300,
+  out.width = "70%",
+  fig.align = 'center',
+  fig.width = 6,
+  fig.asp = 0.618,  
+  fig.show = "hold"
+)
+
+ggplot2::theme_set(ggplot2::theme_light())
+
+options(
+  digits = 3,
+  str = strOptions(strict.width = "cut"),
+  width = 69,
+  tibble.width = 69,
+  cli.unicode = FALSE
+)
+```
+
+
 ```{r child = c('EDA.Rmd', 'Modeling.Rmd')}
 ```

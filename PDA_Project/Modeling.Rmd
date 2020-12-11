@@ -6,10 +6,6 @@ output: html_document
 ---
 
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
 # Boruta Algorithm
 
 Variable selection is an important part of the model building process. To decide on which variables to use, we employ the Boruta Algorithm. In contrary to other traditional feature selection models, that only rely on a small subset of features for the selection, this algorithm captures all features relevant to the outcome variable. (Source: https://www.analyticsvidhya.com/blog/2016/03/select-important-variables-boruta-package/)
