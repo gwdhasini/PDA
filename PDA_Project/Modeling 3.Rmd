@@ -363,9 +363,11 @@ model_svm
 model_svm$bestTune
 plot(model_svm.1)
 
-# COULD WE MAKE A PLOT HERE? question
-# plot(model_svm, german.tr, RESPONSE ~ as.line(USED_CAR), 
-#      slice = list(DURATION = 3, CHK_ACCT = 6))
+german.tr$CHK_ACCT
+
+ #COULD WE MAKE A PLOT HERE? question
+# plot(model_svm.1, german.tr, RESPONSE ~ USED_CAR,
+#       slice = list(DURATION = 9, CHK_ACCT = 3))
 ```
 
 As we can see from the model summary and later confirmed using the best Tune and the plot, the model is well fitted to the data when sigma = 0.001 and the cost C = 100. As we can see, the cost is very large. Having a large cost mean that the margins are going to be very small, and the border is not smooth. The risk of having such a large Cost is that the model is over-fitted. If that is the case, we wouldn't be able to well predict the outcome variable on the test set. We can look at the confusion matrix and see what happens.
@@ -429,7 +431,6 @@ model_rf <- caret::train(RESPONSE ~ .,
                          repeats=10, verboseIter=FALSE, sampling="down")
                          )
 model_rf
-# question --> mtry = 34 but we have less than 34 variables: does it make sense?
 
 ```
 The output shows that the best Accuracy can be reached when mtry = 34. Indeed, the model has been doing different simulation with different mtry (Number of variables randomly sampled as candidates at each split), and ended by fitting the model to the training set using mtry = 34. Indeed, when we run the best tune we obtain the following:
