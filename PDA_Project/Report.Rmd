@@ -2,7 +2,15 @@
 title: "Report"
 author: "Maria Pia El Asmar & Hasini Gunawardena"
 date: "18/12/2020"
-output: html_document
+output:
+  rmdformats::readthedown:
+    code_folding: hide
+    self_contained: true
+    thumbnails: false
+    lightbox: false
+    toc_depth: 3
+    highlight: tango
+    css: style.css
 ---
 
 ```{r setup, include=FALSE}

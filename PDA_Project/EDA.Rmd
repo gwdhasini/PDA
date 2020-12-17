@@ -1,13 +1,3 @@
----
-title: "PDA_EDA"
-author: "Maria Pia El Asmar & Hasini Gunawardena"
-date: "18/12/2020"
-output: html_document
----
-
-
-
-
 # Introduction
 
 As part of the course "Projects in Data Analytics for Decision Making", we are given the task of analysing the "German Credit" dataset. The aim of the project is to obtain a model that may be used to determine if new applicants present a good or bad credit risk.
@@ -29,7 +19,7 @@ GermanCredit <- read.csv(
 
 We are going to start our exploratory data analysis by understanding the data. First, let us observe the type of variables of the dataset:
 
-```{r, echo=FALSE}
+```{r}
 str(GermanCredit)
 ```
 
@@ -40,7 +30,7 @@ While analysing the data, we noted that the variable "EDUCATION" has one outlier
 
 Moreover, we noted that there is an outlier also for the variable "AGE" and the variable "GUARANTOR". For the first mentionned, we changed the observation having a value of 125 to 75, while for the guarantor we changed one observation from the value of 2 to 1.
 
-```{r, echo=FALSE}
+```{r}
 
 # changing education
 for (i in 1:1000){
@@ -77,18 +67,17 @@ for (i in c(2,10,22)){
 ```
 
 
-```{r, echo=FALSE}
+```{r}
 str(GermanCredit)
 
-datatable(head(GermanCredit), class = "cell-border stripe") #Ca apparait pas haha 
-# PIA: à checker quand on va knit
+datatable(head(GermanCredit), class = "cell-border stripe", options = list(scrollX = TRUE)) 
 ```
 
 Now that the variables are in the correct form, we can move on with our analysis.
 
 We start by looking at the structure of the dataset.
 
-```{r, echo=FALSE}
+```{r}
 plot_intro(GermanCredit)
 
 types<-inspect_types(GermanCredit)
@@ -99,16 +88,16 @@ From the first plot, we note that there are no missing observations. Moreover, a
 
 We are now going to dive deeper into the variables' analysis. 
 
-```{r, echo=FALSE}
+```{r}
 summary(GermanCredit)
 ```
 
 The summary gives us a first overview of the variables' details. Interestingly, some categorical variables present an unequal distribution of values. For instance, we note that the variable "CO.APPLICANT" has 959 times "0" and only 41 times "1". A similar comment can be made for other categorical variables like "MALE_MAR_or_WID", "FOREIGN", "MALE_DIV", "EDUCATION". 
 
 
-Let us now analyse the numerical variables. For those, we can look at the min and the max, which gives us a range. For instance, we see that in this bank the duration of the loan goes from 4 to 72 months. The larger the range, the higher the chance of having outliers. For example, the "AMOUNT" variable has a very big range: from 250 to 18'424. Moreover, we note that for all the numerical variables the median is lower than the mean. For instance, "AMOUNT" has a median of 2320 and a mean of 3271, which will mean that the histogram will present a long right tail (positive skewness). 
+Let us now analyse the numerical variables. For those, we can look at the minimum and the maximum, which gives us a range. For instance, we see that in this bank the duration of the loan goes from 4 to 72 months. The larger the range, the higher the chance of having outliers. For example, the "AMOUNT" variable has a very big range: from 250 to 18'424. Moreover, we note that for all the numerical variables the median is lower than the mean. For instance, "AMOUNT" has a median of 2320 and a mean of 3271, which will mean that the histogram will present a long right tail (positive skewness). 
 
-```{r, echo=FALSE}
+```{r}
 cat.var<-inspect_cat(GermanCredit) 
 show_plot(cat.var) 
 ```
@@ -118,7 +107,7 @@ This plot allows us to have a better visualization of how the factor variables a
 
 ## Histogram & Density
 
-```{r, echo=FALSE}
+```{r}
 num.var<-inspect_num(GermanCredit)
 show_plot(num.var, col_palette=3)
 
@@ -138,15 +127,16 @@ Lastly, by observing the histograms we note that the three variables are skewed 
 
 ## Side-by-side boxplots
 
-```{r, echo=FALSE}
+```{r}
 
 lblue <- "#6699CC"
-par(mfrow = c(2, 3))
+par(mfrow = c(1,3))
 
 boxplot(AGE ~ RESPONSE, data = GermanCredit, xlab = "Response", notch = T, 
     varwidth = T, col = lblue)
 boxplot(AMOUNT ~ RESPONSE, data = GermanCredit, xlab = "Response", varwidth = T, col = lblue)
 boxplot(DURATION ~ RESPONSE, data = GermanCredit, xlab = "Response", varwidth = T, col = lblue)
+mtext("Side-by-side Boxplots", side = 3, line = -1.5, outer = TRUE)
 #boxplot(INSTALL_RATE ~ RESPONSE, data = GermanCredit, xlab = "Response", varwidth = T, col = lblue)
 #boxplot(NUM_CREDITS ~ RESPONSE, data = GermanCredit, xlab = "Response", varwidth = T, col = lblue)
 
@@ -157,8 +147,9 @@ The boxplot confirm what stated before. For each variable, we see in which range
 The boxplots allow also to compare the median of the variables according the RESPONSE. On the one hand, AMOUNT has almost the same midian regardless of the outcome. On the other hand both AGE and DURATION show a slightly different median according to RESPONSE. Moreover, we can look at the range of each variable and highlight that the latter is also quite different according to the outcome, as we can clearly see for DURATION. To further develop, the range for RESPONSE = 1 is smaller for both AMOUNT and DURATION and more or less equivalent to RESPONSE = 0 for AGE.
 
 ## Good vs Bad credits
-```{r, echo=FALSE}
+```{r}
 #CHECK QUE TOUTES LES VARIABLES ON ETE CONSIDERE
+
 GermanCredit %>% 
   select(TELEPHONE, RADIO.TV, RESPONSE) %>% 
   explore_all(target = RESPONSE)
@@ -192,8 +183,8 @@ After having deeply analysed the dataset, we are now going to look at the correl
 
 ## Correlations
 
-```{r, echo=FALSE, fig.width= 8, fig.height= 7}
-plot_correlation(GermanCredit, type= 'c', cor_args = list( 'use' = 'complete.obs')) #Library DataExplorer
+```{r, fig.width= 8, fig.height= 7}
+plot_correlation(GermanCredit, type= 'c', cor_args = list( 'use' = 'complete.obs'))
 ```
 
 

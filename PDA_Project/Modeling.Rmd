@@ -1,11 +1,3 @@
----
-title: "Modeling"
-author: "Maria Pia El Asmar & Hasini Gunawardena"
-date: "18/12/2020"
-output: html_document
----
-
-
 # Boruta Algorithm
 
 Variable selection is an important part of the model building process. To decide on which variables to use, we employ the Boruta Algorithm. In contrary to other traditional feature selection models, that only rely on a small subset of features for the selection, this algorithm captures all features relevant to the outcome variable. (Source: https://www.analyticsvidhya.com/blog/2016/03/select-important-variables-boruta-package/)
@@ -99,7 +91,7 @@ GermanCredit <-
 
 To begin the modeling section, we start by partitioning the data set into a training set (750 observations) and testing set (250 observations), selected at random.
 
-```{r, echo=FALSE}
+```{r}
 
 row.order <- sample(c(1:1000)) # first randomize the order of the rows
 german.tr <- GermanCredit[row.order[1:750],] # take the first 750 (random) rows of german for the training set
@@ -114,7 +106,7 @@ In order to be consistent, we decided to build all models using the caret packag
 
 The first model that we investigate is the decision tree. The model is built on the training set and then the test set is used to measure the prediction capacity of the model. The data is normalised through the preProcess argument. We use the repeated cross-validation method, in order to achieve better results. Also, we balance the data thanks to "sampling = down", to ensure that the prediction capacity on both classes is balanced. Lastly, we perform a tuning of the complexity parameter (cp), to further improve the model.
 
-```{r, echo=FALSE, message = FALSE}
+```{r, message = FALSE}
 library(caret)
 set.seed(12)
 hp_ct <- data.frame(cp = seq(from = 0.03, to = 0, by = -0.003))
@@ -135,11 +127,11 @@ ct.caret <- train(
 
 ```
 
-## Best Complexity parameter 
-```{r, echo=FALSE}
+## Best Complexity Parameter 
+```{r}
 ct.caret$bestTune 
 print(ct.caret)
-plot(ct.caret)
+plot(ct.caret, main = "Best Complexity Parameter")
 
 ```
 
@@ -149,7 +141,7 @@ By the information provided above, we can see that the best Accuracy on the trai
 
 We are now going to look on the performance on the test set.
 
-```{r, echo=FALSE}
+```{r}
 confusionMatrix(predict.train(ct.caret, newdata = german.te), 
                 german.te$RESPONSE)
 
@@ -161,7 +153,8 @@ As we can see, the overall Accuracy on the test set is of 60.4%. However, one ca
 ## Tree drawing
   
 We now plot the final and best model. 
-```{r, echo=FALSE}
+```{r}
+par(mar = c(0,0,0,0))
 plot(ct.caret$finalModel)
 text(ct.caret$finalModel)
 ```
@@ -170,7 +163,7 @@ text(ct.caret$finalModel)
 
 The second model that we considered is the Neural Network. Similarly to the Decision Tree, we scaled and balanced the data, as well as, preformed a repeated cross-validation, in order to achieve better results. To go further, we also tuned the "size" and "decay" hyperparameters.
 
-```{r, echo=FALSE, include = FALSE}
+```{r, include = FALSE}
 set.seed(2006)
 
 hp_nn <- expand.grid(size = 2:4, decay = seq(0, 0.5, 0.05))
@@ -195,9 +188,9 @@ credit.nn.caret <- train (
 ```
 
 
-## Accuracy measure
+## Best Parameters
   
-```{r, echo=FALSE}
+```{r}
 credit.nn.caret$bestTune 
 print(credit.nn.caret)
 plot(credit.nn.caret)
@@ -205,7 +198,7 @@ plot(credit.nn.caret)
 As we can see, the highest Accuracy (69.3%) on the training set can be obtained by setting size = 4 and decay = 0.5.
 
 ## Confusion Matrix
-```{r, echo=FALSE}
+```{r}
 confusionMatrix(predict.train(credit.nn.caret, newdata = german.te), 
                 german.te$RESPONSE)
 ``` 
@@ -215,17 +208,17 @@ The results are confirmed in the Confusion Matrix where the "1" class is correct
 
 ## Neural Network Plotting
   
-```{r, echo=FALSE}
+```{r}
 library(NeuralNetTools)
 plotnet(credit.nn.caret, pos_col = "darkgreen", neg_col = "darkblue")
 
 ```
 
-# Logistic regression with caret
+# Logistic Regression
 
 The third model that we considered is the Logistic Regression, that is a powerful classifier for binary outputs.
 
-```{r, echo=FALSE, warning = FALSE}
+```{r, warning = FALSE}
 set.seed(1)
 credit.log.caret <-
   train(
@@ -248,7 +241,7 @@ credit.log.caret <-
 
 ## Accuracy measure
   
-```{r, echo=FALSE}
+```{r}
 print(credit.log.caret)
 summary(credit.log.caret)
 
@@ -259,7 +252,7 @@ The results of the training show that not all variables significantly impact the
 Overall, the model presents a good Accuracy (70.9%) on the training set. However, to truly evaluate its prediction capacity we would need to consider the Accuracy on the test set.
 
 ## Confusion Matrix
-```{r, echo=FALSE}
+```{r}
 confusionMatrix(predict.train(credit.log.caret, newdata = german.te),
                 german.te$RESPONSE)
 
@@ -279,7 +272,7 @@ The fourth model considered is the Discriminant Analysis. First, we are going to
 
 ## LDA
 
-```{r, echo=FALSE, message= FALSE, warning=FALSE}
+```{r, message= FALSE, warning=FALSE}
 set.seed(4567)
 lda.fit <- caret::train(RESPONSE ~ .,
                          data=german.tr,
@@ -292,8 +285,8 @@ lda.fit <- caret::train(RESPONSE ~ .,
 
 After having trained the model, we are going to make predictions on the test set and look at the results.
 
-### Confusion matrix
-```{r, echo=FALSE}
+### Confusion Matrix
+```{r}
 lda.pred <- predict(lda.fit, GermanCredit)
 
 confusionMatrix(predict.train(lda.fit, newdata = german.te),
@@ -308,7 +301,7 @@ Looking into more details, we note that the Sensitivity and the Specificity are 
 
 We are now going to create a model using a Quadritic Discriminant Analysis.
 
-```{r, echo=FALSE, warning= FALSE}
+```{r warning= FALSE}
 
 set.seed(1)
 qda.fit <- caret::train(RESPONSE ~ .,
@@ -342,7 +335,7 @@ Hence, we can say that the model is very good at predicting the good credits ("1
 
 The next model is the Support Vector Machine. We will first use the Radial, then the Poly model.
 
-```{r, echo=FALSE, warning = FALSE}
+```{r, warning = FALSE, message = FALSE}
 library(doParallel) # use the parallel backend
 cl<-makeCluster(detectCores()) # detect and create a cluster
 registerDoParallel(cl)
@@ -373,8 +366,8 @@ german.tr$CHK_ACCT
 
 As we can see from the model summary and later confirmed using the best Tune and the plot, the model is well fitted to the data when Sigma = 0.1 and the Cost C = 1. As we can see, the Cost is very small. Having a small Cost means that the margins are going to be very large. The risk of having such a small Cost is that the model is under-fitted. If that is the case, we would not be able to well predict the outcome variable on the test set. We can look at the Confusion Matrix and see what happens.
 
-## Confusion matrix
-```{r, echo=FALSE, warning = FALSE}
+## Confusion Matrix
+```{r, warning = FALSE, message = FALSE}
 
 confusionMatrix(predict.train(model_svm, newdata = german.te),
                 german.te$RESPONSE)
@@ -388,7 +381,7 @@ In the light of what we have seen, we can confirm that the model is not under-fi
 
 After having fitted a first Support Vector Machine model, we are now going to fit another one using "svmPoly" and see if the results improve. 
 
-```{r, echo = FALSE, warning=FALSE}
+```{r, warning=FALSE, message=FALSE}
 C<-c(0.1, 1, 10, 100)
 degree<-c(1, 2, 3)
 scale<-1
@@ -409,8 +402,8 @@ plot(model_svm_poly)
 This Support Vector Machine model does not only tune the Cost parameter, but also the Scale and the Degree. The output of the model's summary, as well as the bestTune function and the graph show that the model gives the best results when Degree = 1, Scale = 1, and C = 0.1. We are now going to analyse the Confusion Matrix and see if the model's prediction capacity are good.
 
 
-## Confusion matrix
-```{r, echo=FALSE, warning = FALSE}
+## Confusion Matrix
+```{r, warning = FALSE, message=FALSE}
 
 confusionMatrix(predict.train(model_svm_poly, newdata = german.te),
                 german.te$RESPONSE)
@@ -421,11 +414,11 @@ Unlike in the previous Support Vector Machine model, this model has a much lower
 Hence, we would prefer not using this model since other models are much more performant. 
 
 
-# Ensemble methods (Random Forest)
+# Ensemble Methods (Random Forest)
 
 The last model we are going to analyse is the Random Forest. 
 
-```{r, echo = FALSE, warning=FALSE}
+```{r, warning=FALSE, message=FALSE}
 set.seed(1994)
 modelLookup(model="rf")
 
@@ -449,7 +442,7 @@ model_rf$bestTune
 
 We are now going to look at how the model behaves when predicting the output from the test set.
 
-## Confusion matrix
+## Confusion Matrix
 ```{r}
 # confusion matrix
 confusionMatrix(predict.train(model_rf, newdata = german.te),
