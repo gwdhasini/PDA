@@ -82,10 +82,6 @@ plot_intro(GermanCredit, title  = "Dataset structure")
 
 types<-inspect_types(GermanCredit)
 show_plot(types, col_palette=2)
-
-??show_plot
-
-
 ```
 
 From the first plot, we note that there are no missing observations. Moreover, after the variables transformation 87% of them have discrete values, meaning that these are categorical variables. That is confirmed by the second plot that gives us the exact number of columns which are integer and the ones that are factors (categorical variables).
@@ -143,9 +139,9 @@ boxplot(DURATION ~ RESPONSE, data = GermanCredit, xlab = "Response", varwidth = 
 mtext("Side-by-side Boxplots", side = 3, line = -1.5, outer = TRUE)
 
 ```
-The boxplot confirm what stated before. For each variable, we see in which range most values stand according the outcome variable RESPONSE. Moreover, it allows us to have a visual representation of possible outliers: for instance, we see that for AMOUNT there is one observation where the credit is really high, and the outcome variable RESPONSE is 0. 
+The boxplots confirm what stated before. For each variable, we see in which range most values stand according the outcome variable RESPONSE. Moreover, it allows us to have a visual representation of possible outliers: for instance, we see that for AMOUNT there is one observation where the credit is really high, and the outcome variable RESPONSE is 0. 
 
-The boxplots allow also to compare the median of the variables according the RESPONSE. On the one hand, AMOUNT has almost the same midian regardless of the outcome. On the other hand both AGE and DURATION show a slightly different median according to RESPONSE. Moreover, we can look at the range of each variable and highlight that the latter is also quite different according to the outcome, as we can clearly see for DURATION. To further develop, the range for RESPONSE = 1 is smaller for both AMOUNT and DURATION and more or less equivalent to RESPONSE = 0 for AGE.
+The boxplots allow also to compare the median of the variables according the RESPONSE. On the one hand, AMOUNT has almost the same median regardless of the outcome. On the other hand both AGE and DURATION show a slightly different median according to RESPONSE. Moreover, we can look at the range of each variable and highlight that the latter is also quite different according to the outcome, as we can clearly see for DURATION. To further develop, the range for RESPONSE = 1 is smaller for both AMOUNT and DURATION and more or less equivalent to RESPONSE = 0 for AGE.
 
 ## Good vs Bad credits
 ```{r}
@@ -174,7 +170,7 @@ GermanCredit %>%
   explore_all(target = RESPONSE)
 
 ```
-Similarly to what we saw in the boxplot for the integer variables, we now observe the distribution of all the catgorical ones according to the outcome variable RESPONSE.
+Similarly to what we saw in the boxplots for the integer variables, we now observe the distribution of all the catgorical ones according to the outcome variable RESPONSE.
 
 We note that there are no discrimination for any categorical variable when considering the RESPONSE feature, meaning that we are not going to be able to define RESPONSE only by looking at those variables individually.
 

@@ -309,7 +309,7 @@ qda.fit <- caret::train(RESPONSE ~ .,
 qda.fit
 ```
 
-When training the model, the Accuracy is at 68% which is lower compared to the Linear Discriminant Analysis Model. We are still going to see how the model performs when fitted on the test dataset.
+When training the model, the Accuracy is at 68,3% which is similar compared to the Linear Discriminant Analysis Model. We are still going to see how the model performs when fitted on the test dataset.
 
 ### Confusion Matrix
 ```{r}
@@ -320,7 +320,7 @@ confusionMatrix(predict.train(qda.fit, newdata = german.te),
 
 ```
 
-When the model is fitted on the test set, the Accuracy is of 71.2%, which is the highest level achieved so far. However when looking at the Sensitivity, one can remark that the it has a low value (60.98%). The model is able has predicted 50 bad credits out of 82, making him the worst in terms of prediction capability of the class "0". On the other hand, the Specificity is of 76.19%, the highest value achieved for the "1" class. 
+When the model is fitted on the test set, the Accuracy is of 71.2%, which is the highest level achieved so far. However when looking at the Sensitivity, one can remark that the it has a low value (61%). The model is able has predicted 50 bad credits out of 82, making him the worst in terms of prediction capability of the class "0". On the other hand, the Specificity is of 76.2%, the highest value achieved for the "1" class. 
 
 Hence, we can say that the model is very good at predicting the good credits ("1"), but very bad a predicting the bad ones. Even if the Accuracy is high, it is preferable to use a model that is able to better predict both classes. 
 
@@ -361,7 +361,7 @@ confusionMatrix(predict.train(model_svm, newdata = german.te),
                 german.te$RESPONSE)
 ```
 
-The model's Accuracy is of 70%. However, when looking at the Sensitivity and the Specificity, we realise that it is unable to balance the classes despite having set "sampling = down". To further explain, the Sensitivity is very low (28,05%). Indeed the model, correctly predicts the "0" class 23 times out of 82. On the other hand, this model is very good at predicting the "1" class. In fact, it achieves a Specificity score of 90.48%.
+The model's Accuracy is of 70%. However, when looking at the Sensitivity and the Specificity, we realise that it is unable to balance the classes despite having set "sampling = down". To further explain, the Sensitivity is very low (28%). Indeed the model, correctly predicts the "0" class 23 times out of 82. On the other hand, this model is very good at predicting the "1" class. In fact, it achieves a Specificity score of 90.5%.
 
 This means that the model is very good at predicting good creditors but does a very poor jobs at predicting bad ones. In the light of what we have seen, we can confirm that the model is under-fitting. Indeed, it is unable to predict correctly the "0" class.
 
@@ -397,7 +397,7 @@ model_svm_poly$bestTune
 plot(model_svm_poly)
 ```
 
-This Support Vector Machine model does not only tune the Cost parameter, but also the Scale and the Degree. The output of the model's summary, as well as the bestTune function and the graph show that the model gives the best results when Degree = 1, Scale = 1, and C = 0.1. We are now going to analyse the Confusion Matrix and see if the model's prediction capacity are good.
+This Support Vector Machine model does not only tune the Cost parameter, but also the Scale and the Degree. The output of the model's summary, as well as, the bestTune function and the graph show that the model gives the best results when Degree = 1, Scale = 1, and C = 0.1. We are now going to analyse the Confusion Matrix and see if the model's prediction capacity are good.
 
 
 ## Confusion Matrix
@@ -447,7 +447,7 @@ The model's Accuracy is of 69.6%.
 
 When looking at the Sensitivity and the Specificity, one can note that the model is better at predicting the bad credits ("0"). Indeed, the Sensitivity is of 75.6% while the Specificity of 66.7%. So when we fitted as random forest, we remark that 112 times out of 168 the model is able to predict good credits and 62 times out of 82, a bad one. Overall, the model is satisfying as it is able to predicted both classes pretty well. 
 
-Generally, to have even better results we could make a variable importance analysis. However, having used the Bortuta Algorithm at the beginning of our analysis, this step is no longer necessary. 
+Generally, to have even better results we could make a variable importance analysis. However, having used the Boruta Algorithm at the beginning of our analysis, this step is no longer necessary. 
 
 # Conclusion
 
@@ -455,6 +455,6 @@ To put in a nutshell, we have observed that overall most of the models are predi
 
 However, depending on the aim of the project, the choice of model may differ. To further explain, if the goal is to predict good credit candidates, one should consider looking at the models having the highest Specificity rates, that are, in this case, the same as for the overall Accuracy: the Radial SVM (90.5%), followed by the QDA model (76.19%) and the Random Forest model (66.7%). 
 
-On the other hand, if the aim of the project is to detect and predict bad creditors, then the models considered should be the ones having the highest Sensitivity rates:the Random Forest model (75.61%), followed by the Logistic Regression and LDA models (both at 73.2%).
+On the other hand, if the aim of the project is to detect and predict bad creditors, then the models considered should be the ones having the highest Sensitivity rates: the Random Forest model (75.6%), followed by the Logistic Regression and LDA models (both at 73.2%).
 
 However, it is better to identify the bad creditors in order to avoid lending money to people who are not going to pay back. Hence, the model you should use to define if a client can be considered as a good or a bad creditor is the one with the highest sensitivity, thus, the random forest.

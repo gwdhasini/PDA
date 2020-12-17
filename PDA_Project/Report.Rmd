@@ -2,7 +2,7 @@
 title: "Report"
 author:
 - "<center>Hasini Gunawardena</center><center>"
-- "<center>Maria Pia El Asmar</center>"
+- "<center>Maria Pia El Asmar</center><center>"
 date: "18/12/2020"
 output:
   rmdformats::readthedown:
