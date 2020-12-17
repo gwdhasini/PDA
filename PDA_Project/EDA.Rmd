@@ -78,10 +78,14 @@ Now that the variables are in the correct form, we can move on with our analysis
 We start by looking at the structure of the dataset.
 
 ```{r}
-plot_intro(GermanCredit)
+plot_intro(GermanCredit, title  = "Dataset structure")
 
 types<-inspect_types(GermanCredit)
 show_plot(types, col_palette=2)
+
+??show_plot
+
+
 ```
 
 From the first plot, we note that there are no missing observations. Moreover, after the variables transformation 87% of them have discrete values, meaning that these are categorical variables. That is confirmed by the second plot that gives us the exact number of columns which are integer and the ones that are factors (categorical variables).

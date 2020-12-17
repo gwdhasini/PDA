@@ -151,7 +151,7 @@ As we can see, the overall Accuracy on the test set is of 60.4%. However, one ca
 ## Tree drawing
   
 We now plot the final and best model. 
-```{r, fig.height = 10, fig.width = 10}
+```{r, fig.height = 5, fig.width = 10}
 par(mar = c(0,0,0,0))
 plot(ct.caret$finalModel)
 text(ct.caret$finalModel)
@@ -350,7 +350,6 @@ model_svm
 model_svm$bestTune
 plot(model_svm)
 
-german.tr$CHK_ACCT
 ```
 
 As we can see from the model summary and later confirmed using the best Tune and the plot, the model is well fitted to the data when Sigma = 0.0001 and the Cost C = 0.25. As we can see, the Cost is very small. Having a small Cost means that the margins are going to be very large. The risk of having such a small Cost is that the model is under-fitted. If that is the case, we would not be able to well predict the outcome variable on the test set. We can look at the Confusion Matrix and see what happens.
@@ -458,4 +457,4 @@ However, depending on the aim of the project, the choice of model may differ. To
 
 On the other hand, if the aim of the project is to detect and predict bad creditors, then the models considered should be the ones having the highest Sensitivity rates:the Random Forest model (75.61%), followed by the Logistic Regression and LDA models (both at 73.2%).
 
-With this in mind, we could state that the choice of model depends on the task at hand. Even though the Radial SVM model is the second best in overall accuracy it does not predict both classes in a balanced way and should thus be avoided. To choose the model, one should focus on the scope of the project. There is not one best model.
+However, it is better to identify the bad creditors in order to avoid lending money to people who are not going to pay back. Hence, the model you should use to define if a client can be considered as a good or a bad creditor is the one with the highest sensitivity, thus, the random forest.
