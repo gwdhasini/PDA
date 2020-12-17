@@ -163,7 +163,7 @@ text(ct.caret$finalModel)
 
 The second model that we considered is the Neural Network. Similarly to the Decision Tree, we scaled and balanced the data, as well as, preformed a repeated cross-validation, in order to achieve better results. To go further, we also tuned the "size" and "decay" hyperparameters.
 
-```{r, include = FALSE}
+```{r, echo=FALSE, include = FALSE}
 set.seed(2006)
 
 hp_nn <- expand.grid(size = 2:4, decay = seq(0, 0.5, 0.05))
@@ -210,6 +210,7 @@ The results are confirmed in the Confusion Matrix where the "1" class is correct
   
 ```{r}
 library(NeuralNetTools)
+par(mar = c(0,0,0,0))
 plotnet(credit.nn.caret, pos_col = "darkgreen", neg_col = "darkblue")
 
 ```
@@ -346,7 +347,7 @@ gr.radial<-expand.grid(C = C, sigma = sigma)
 
 set.seed(123)
 system.time(model_svm<-caret::train(RESPONSE ~ .,
-                          data = german.te,
+                          data = german.tr,
                           method = "svmRadial",
                           preProcess = "range",
                           trace=FALSE,
@@ -364,7 +365,7 @@ german.tr$CHK_ACCT
 #       slice = list(DURATION = 9, CHK_ACCT = 3))
 ```
 
-As we can see from the model summary and later confirmed using the best Tune and the plot, the model is well fitted to the data when Sigma = 0.1 and the Cost C = 1. As we can see, the Cost is very small. Having a small Cost means that the margins are going to be very large. The risk of having such a small Cost is that the model is under-fitted. If that is the case, we would not be able to well predict the outcome variable on the test set. We can look at the Confusion Matrix and see what happens.
+As we can see from the model summary and later confirmed using the best Tune and the plot, the model is well fitted to the data when Sigma = 0.0001 and the Cost C = 0.25. As we can see, the Cost is very small. Having a small Cost means that the margins are going to be very large. The risk of having such a small Cost is that the model is under-fitted. If that is the case, we would not be able to well predict the outcome variable on the test set. We can look at the Confusion Matrix and see what happens.
 
 ## Confusion Matrix
 ```{r, warning = FALSE, message = FALSE}
@@ -373,25 +374,35 @@ confusionMatrix(predict.train(model_svm, newdata = german.te),
                 german.te$RESPONSE)
 ```
 
-The model's Accuracy is of 90.4%, which is the highest seen so far. However, when looking at the Sensitivity and the Specificity, we realise that it is able to predict almost perfectly when RESPONSE is 0, and quite well when the outcome is 1. Indeed, the Specificity is of 85% which is a good value, but the Sensitivity is of 100%, which means that the model can perfectly predict bad creditors.
+The model's Accuracy is of 70%. However, when looking at the Sensitivity and the Specificity, we realise that it is unable to balance the classes despite having set "sampling = down". To further explain, the Sensitivity is very low (28,05%). Indeed the model, correctly predicts the "0" class 23 times out of 82. On the other hand, this model is very good at predicting the "1" class. In fact, it achieves a Specificity score of 90.48%.
 
-In the light of what we have seen, we can confirm that the model is not under-fitted. If that was the case it would not be able to make good predictions and the Accuracy would be definetly lower. 
+This means that the model is very good at predicting good creditors but does a very poor jobs at predicting bad ones. In the light of what we have seen, we can confirm that the model is under-fitting. Indeed, it is unable to predict correctly the "0" class.
 
 # Support Vector Machine II
 
 After having fitted a first Support Vector Machine model, we are now going to fit another one using "svmPoly" and see if the results improve. 
 
 ```{r, warning=FALSE, message=FALSE}
-C<-c(0.1, 1, 10, 100)
-degree<-c(1, 2, 3)
-scale<-1
+C <- c(0.1, 1, 10, 100)
+degree <- c(1, 2, 3)
+scale <- 1
 
-gr.poly<-expand.grid(C=C, degree=degree, scale=scale)
-ctrl<-trainControl(method="cv", number=3, sampling = "down")
+gr.poly <- expand.grid(C = C, degree = degree, scale = scale)
+ctrl <- trainControl(method = "cv",
+                     number = 3,
+                     sampling = "down")
 
 set.seed(123)
-system.time(model_svm_poly<-train(RESPONSE~., data=german.tr, method="svmPoly", trControl=ctrl, 
-                            tuneGrid=gr.poly))
+system.time(
+  model_svm_poly <-
+    train(
+      RESPONSE ~ .,
+      data = german.tr,
+      method = "svmPoly",
+      trControl = ctrl,
+      tuneGrid = gr.poly
+    )
+)
 
 model_svm_poly
 
@@ -409,9 +420,7 @@ confusionMatrix(predict.train(model_svm_poly, newdata = german.te),
                 german.te$RESPONSE)
 ```
 
-Unlike in the previous Support Vector Machine model, this model has a much lower Accuracy (66.8%). However, we can highlight that, similarly to the previous model, this one is slightly better at predicting the bad creditors ("0") compared to the good ones. Indeed, the model is able to predict correctly bad creditors 56 times out of 82 and good creditors 111 times out of 168.
-
-Hence, we would prefer not using this model since other models are much more performant. 
+This Support Vector Machine model has an Accuracy of 66.8%. It is a bit lower than the Radial one. However, we can highlight that, even though it does a poorer job, it predicts both classes in a more balanced way. This one is slightly better at predicting the bad creditors ("0") compared to the good ones. Indeed, the model is able to predict correctly bad creditors 56 times out of 82 and good creditors 111 times out of 168.
 
 
 # Ensemble Methods (Random Forest)
@@ -456,10 +465,10 @@ Generally, to have even better results we could make a variable importance analy
 
 # Conclusion
 
-To put in a nutshell, we have observed that overall most of the models are predicting quite well both classes. When considering the top 3 in terms of overall Accuracy, the ones that stand out are the Radial SVM model (90.4%), followed by the QDA model (71.2%) and Random Forest model (69.6%). 
+To put in a nutshell, we have observed that overall most of the models are predicting quite well both classes. When considering the top 3 in terms of overall Accuracy, the ones that stand out are the QDA model (71.2%),  followed by the Radial SVM model (70.0%), and Random Forest model (69.6%). 
 
-However, depending on the aim of the project, the choice of model may differ. To further explain, if the goal is to predict good credit candidates, one should consider looking at the models having the highest Specificity rates, that are, in this case, the same as for the overall Accuracy: the Radial SVM (85.7%), followed by the QDA model (76.19%) and the Random Forest model (66.7%). 
+However, depending on the aim of the project, the choice of model may differ. To further explain, if the goal is to predict good credit candidates, one should consider looking at the models having the highest Specificity rates, that are, in this case, the same as for the overall Accuracy: the Radial SVM (90.5%), followed by the QDA model (76.19%) and the Random Forest model (66.7%). 
 
-On the other hand, if the aim of the project is to detect and predict bad creditors, then the models considered should be the ones having the highest Sensitivity rates: the Radial SVM model (100%), followed by the Random Forest model (75.61%) and the Logistic Regression or LDA models (both at 73.2%).
+On the other hand, if the aim of the project is to detect and predict bad creditors, then the models considered should be the ones having the highest Sensitivity rates:the Random Forest model (75.61%), followed by the Logistic Regression and LDA models (both at 73.2%).
 
-With this in mind, we could state that we do have indeed a clear winner and that is the Radial SVM model, since it has the highest Accuracy, Specificity and Sensitivity rates.
+With this in mind, we could state that the choice of model depends on the task at hand. Even though the Radial SVM model is the second best in overall accuracy it does not predict both classes in a balanced way and should thus be avoided. To choose the model, one should focus on the scope of the project. There is not one best model.
