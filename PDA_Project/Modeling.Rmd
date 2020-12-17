@@ -25,7 +25,6 @@ axis(side = 1,las=2,labels = names(Labels),
 at = 1:ncol(boruta.train$ImpHistory), cex.axis = 0.7)
 title(main="Variable Importance According to the Boruta Algorithm")
 
-
 ```
 
 
@@ -49,7 +48,7 @@ final.boruta$ImpHistory[is.finite(final.boruta$ImpHistory[,i]),i])
 names(lz) <- colnames(final.boruta$ImpHistory)
 Labels <- sort(sapply(lz,median))
 axis(side = 1,las=2,labels = names(Labels),
-at = 1:ncol(final.boruta$ImpHistory), cex.axis = 0.7)
+at = 1:ncol(final.boruta$ImpHistory), cex.axis = 0.45)
 title(main="Variable Importance After the Fix")
 
 
@@ -107,7 +106,6 @@ In order to be consistent, we decided to build all models using the caret packag
 The first model that we investigate is the decision tree. The model is built on the training set and then the test set is used to measure the prediction capacity of the model. The data is normalised through the preProcess argument. We use the repeated cross-validation method, in order to achieve better results. Also, we balance the data thanks to "sampling = down", to ensure that the prediction capacity on both classes is balanced. Lastly, we perform a tuning of the complexity parameter (cp), to further improve the model.
 
 ```{r, message = FALSE}
-library(caret)
 set.seed(12)
 hp_ct <- data.frame(cp = seq(from = 0.03, to = 0, by = -0.003))
 ct.caret <- train(
@@ -153,7 +151,7 @@ As we can see, the overall Accuracy on the test set is of 60.4%. However, one ca
 ## Tree drawing
   
 We now plot the final and best model. 
-```{r}
+```{r, fig.height = 10, fig.width = 10}
 par(mar = c(0,0,0,0))
 plot(ct.caret$finalModel)
 text(ct.caret$finalModel)
@@ -182,9 +180,6 @@ credit.nn.caret <- train (
   tuneGrid = hp_nn
 )
 
-#final  value 215.167737 
-#stopped after 100 iterations
-
 ```
 
 
@@ -208,7 +203,7 @@ The results are confirmed in the Confusion Matrix where the "1" class is correct
 
 ## Neural Network Plotting
   
-```{r}
+```{r, fig.width = 15}
 library(NeuralNetTools)
 par(mar = c(0,0,0,0))
 plotnet(credit.nn.caret, pos_col = "darkgreen", neg_col = "darkblue")
@@ -245,8 +240,6 @@ credit.log.caret <-
 ```{r}
 print(credit.log.caret)
 summary(credit.log.caret)
-
-
 ```
 The results of the training show that not all variables significantly impact the RESPONSE variable. For instance, according to the model, variables such as JOB or NEW_CAR do not impact the RESPONSE variable significantly. Other variables may impact the explained variable at different thresholds. For example, CHK_ACCT3 has a significant influence at a threshold of 0.1%, whereas EMPLOYMENT4, INSTALL_RATE4 and HISTORY4 have impacts at thresholds of, respectively, 1%, 5% and 10%.
 
@@ -256,7 +249,6 @@ Overall, the model presents a good Accuracy (70.9%) on the training set. However
 ```{r}
 confusionMatrix(predict.train(credit.log.caret, newdata = german.te),
                 german.te$RESPONSE)
-
 
 ``` 
 The analysis of the predictions on the test set reveals that it is as well a good model since the overall Accuracy is of 68.8%. This means, that overall the Logistic Regression outperforms both the Decision Tree and the Neural Network.
@@ -359,10 +351,6 @@ model_svm$bestTune
 plot(model_svm)
 
 german.tr$CHK_ACCT
-
- #COULD WE MAKE A PLOT HERE? question
-# plot(model_svm.1, german.tr, RESPONSE ~ USED_CAR,
-#       slice = list(DURATION = 9, CHK_ACCT = 3))
 ```
 
 As we can see from the model summary and later confirmed using the best Tune and the plot, the model is well fitted to the data when Sigma = 0.0001 and the Cost C = 0.25. As we can see, the Cost is very small. Having a small Cost means that the margins are going to be very large. The risk of having such a small Cost is that the model is under-fitted. If that is the case, we would not be able to well predict the outcome variable on the test set. We can look at the Confusion Matrix and see what happens.
@@ -453,7 +441,6 @@ We are now going to look at how the model behaves when predicting the output fro
 
 ## Confusion Matrix
 ```{r}
-# confusion matrix
 confusionMatrix(predict.train(model_rf, newdata = german.te),
                 german.te$RESPONSE)
 ```

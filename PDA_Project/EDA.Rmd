@@ -137,9 +137,6 @@ boxplot(AGE ~ RESPONSE, data = GermanCredit, xlab = "Response", notch = T,
 boxplot(AMOUNT ~ RESPONSE, data = GermanCredit, xlab = "Response", varwidth = T, col = lblue)
 boxplot(DURATION ~ RESPONSE, data = GermanCredit, xlab = "Response", varwidth = T, col = lblue)
 mtext("Side-by-side Boxplots", side = 3, line = -1.5, outer = TRUE)
-#boxplot(INSTALL_RATE ~ RESPONSE, data = GermanCredit, xlab = "Response", varwidth = T, col = lblue)
-#boxplot(NUM_CREDITS ~ RESPONSE, data = GermanCredit, xlab = "Response", varwidth = T, col = lblue)
-
 
 ```
 The boxplot confirm what stated before. For each variable, we see in which range most values stand according the outcome variable RESPONSE. Moreover, it allows us to have a visual representation of possible outliers: for instance, we see that for AMOUNT there is one observation where the credit is really high, and the outcome variable RESPONSE is 0. 
@@ -148,8 +145,6 @@ The boxplots allow also to compare the median of the variables according the RES
 
 ## Good vs Bad credits
 ```{r}
-#CHECK QUE TOUTES LES VARIABLES ON ETE CONSIDERE
-
 GermanCredit %>% 
   select(TELEPHONE, RADIO.TV, RESPONSE) %>% 
   explore_all(target = RESPONSE)
